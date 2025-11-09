@@ -1,0 +1,4 @@
+*.exe
+
+# Ignore a specific folder
+bin/
