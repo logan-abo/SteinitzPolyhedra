@@ -33,7 +33,7 @@ void PackingDisplay::computeShapes() {
 
     for (int i=0 ; i<object->centers.size() ; i++) {
 
-        double radius = object->radii[i] * scale;
+        double radius = object->centers[i]->radius * scale;
         array<double, 2> center = toWindowCoords({object->centers[i]->position[0],
                                                   object->centers[i]->position[1]});
 

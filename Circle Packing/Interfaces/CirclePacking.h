@@ -43,7 +43,6 @@ class CirclePacking {
     public: 
 
         vector<Vertex*> centers;
-        vector<double> radii;
 
         CirclePacking(DCEL& planeGraph);
 

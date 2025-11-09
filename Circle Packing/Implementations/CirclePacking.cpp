@@ -73,8 +73,6 @@ CirclePacking::CirclePacking(DCEL& dcel) {
     //      Use this to calculate effective radius of every vertex
 void CirclePacking::computeEffectiveRadii() {
 
-    radii.clear();
-
     //Effective radii for interior vertices
     // Aim is 2pi
     // same number of sectors as degree
@@ -100,7 +98,7 @@ void CirclePacking::computeEffectiveRadii() {
         }
         while (current != start);
 
-        radii.push_back( sqrt(areaSum / (2*M_PI)) );
+        centers[i]->radius = sqrt(areaSum / (2*M_PI));
 
     }
 
@@ -126,7 +124,7 @@ void CirclePacking::computeEffectiveRadii() {
 
         }
 
-        radii.push_back( sqrt(areaSum / aim) );
+        centers[i]->radius = sqrt(areaSum / aim);
     }
 
 }
@@ -145,12 +143,43 @@ double CirclePacking::sectorRadius(HalfEdge* edge) const {
 //      use estimated external radius to calculate location of next exterior circle
 //      place all exterior circles succeessively
 //  Rescale all circles to be within unit circle 
+void CirclePacking::placeExteriorCircles() {
+
+    double rho = estimateBoundingRadius();
+
+    //Place the first exterior circle
+    centers[interiorVertexCount]->relocate({
+        rho-centers[interiorVertexCount]->radius,
+        0,
+        centers[interiorVertexCount]->position[2]
+    });
+
+    double cummulativeAngle = 0;
+
+    for (int i=interiorVertexCount+1 ; i<centers.size() ; i++) {
+
+        double radius = rho - centers[i]->radius;
+        cummulativeAngle += std::acos(1 - 
+            (2 * centers[i-1]->radius * centers[i]->radius) / (radius * (rho - centers[i-1]->radius)));
+
+        centers[i]->relocate({
+            radius*std::cos(cummulativeAngle),
+            radius*std::sin(cummulativeAngle),
+            centers[i]->position[2]
+        });
+    }
+
+}
+//
 double CirclePacking::estimateBoundingRadius() const {
 
-    double upper = std::accumulate(radii.begin()+interiorVertexCount, 
-                                   radii.end(), 0.0);
-    double lower = *std::max_element(radii.begin() + interiorVertexCount,
-                                     radii.end());
+    double upper = std::accumulate(centers.begin()+interiorVertexCount, centers.end(), 0.0,
+        [](double s, const Vertex* v) {
+            return s + v->radius;
+        });
+    double lower = 0;
+    // double lower = *std::max_element(radii.begin() + interiorVertexCount,
+    //                                  radii.end());
 
     double rho;
     double approx;
@@ -178,44 +207,17 @@ double CirclePacking::sumExteriorOverRho(double rho) const {
 
     double sum = 0;
 
-    for (int i=interiorVertexCount ; i<radii.size()-1 ; i++) {
+    for (int i=interiorVertexCount ; i<centers.size()-1 ; i++) {
 
         sum += std::acos(1 - 
-            (2 * radii[i] * radii[i+1]) / 
-            ((rho - radii[i]) * (rho - radii[i+1])));
+            (2 * centers[i]->radius * centers[i+1]->radius) / 
+            ((rho - centers[i]->radius) * (rho - centers[i+1]->radius)));
 
     }
 
     return sum + std::acos(1 - 
-        (2 * radii[radii.size()-1] * radii[interiorVertexCount]) / 
-        ((rho - radii[radii.size()-1]) * (rho - radii[interiorVertexCount])));
-
-}
-//
-void CirclePacking::placeExteriorCircles() {
-
-    double rho = estimateBoundingRadius();
-
-    //Place the first exterior circle
-    centers[interiorVertexCount]->relocate({
-        rho-radii[interiorVertexCount],
-        0,
-        centers[interiorVertexCount]->position[2]
-    });
-
-    double cummulativeAngle = 0;
-
-    for (int i=interiorVertexCount+1 ; i<centers.size() ; i++) {
-
-        double radius = rho - radii[i];
-        cummulativeAngle += std::acos(1 - (2*radii[i-1]*radii[i]) / (radius*(rho - radii[i-1])));
-
-        centers[i]->relocate({
-            radius*std::cos(cummulativeAngle),
-            radius*std::sin(cummulativeAngle),
-            centers[i]->position[2]
-        });
-    }
+        (2 * centers[centers.size()-1]->radius * centers[interiorVertexCount]->radius) / 
+        ((rho - centers[centers.size()-1]->radius) * (rho - centers[interiorVertexCount]->radius)));
 
 }
 
