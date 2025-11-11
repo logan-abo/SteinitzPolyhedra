@@ -21,7 +21,6 @@ class CirclePacking {
 
     private:
 
-        DCEL* object;
         PlanarEmbedding* embedding;
         vector<vector<int>> edgeConductance;
 
@@ -59,6 +58,8 @@ class CirclePacking {
     public: 
 
         CirclePacking(DCEL& planeGraph);
+        
+        DCEL* object;
 
         vector<Vertex*> centers;
 

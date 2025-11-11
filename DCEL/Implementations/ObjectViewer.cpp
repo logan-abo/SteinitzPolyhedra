@@ -96,7 +96,7 @@ void ObjectViewer::display() {
             double radius = face->inradius * scale;
             array<double, 3> center = toWindowCoords(face->centroid());
             sf::Vector2f position(
-                center[0]-radius, center[1]-radius
+                center[1]-radius, center[0]-radius
             );
 
             sf::CircleShape drawableCircle(radius);

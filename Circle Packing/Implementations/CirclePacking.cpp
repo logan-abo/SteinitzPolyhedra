@@ -50,7 +50,9 @@ CirclePacking::CirclePacking(DCEL& dcel) {
     computeEffectiveRadii();
 
     placeExteriorCircles();
-    placeInteriorCircles();
+    // placeInteriorCircles();
+
+    computeInradii();
 
     //Full Approximation
     // for (int i=0 ; i<3 ; i++) {
@@ -261,7 +263,7 @@ double CirclePacking::sumExteriorOverRho(double rho) const {
 //  Create Transition probability matrix
 //The crucial step: solve matrix system for centers of interior vertices
 
-// Needs to be checked:
+// DOES NOT WORK:
 // Display incircles along with triangles (graph structure)
 void CirclePacking::computeInradii() {
 
