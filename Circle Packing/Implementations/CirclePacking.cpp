@@ -263,48 +263,30 @@ double CirclePacking::sumExteriorOverRho(double rho) const {
 //  Create Transition probability matrix
 //The crucial step: solve matrix system for centers of interior vertices
 
-// DOES NOT WORK:
-// Display incircles along with triangles (graph structure)
+// Definitely Functional (second display window)
 void CirclePacking::computeInradii() {
 
     unordered_map<HalfEdge*, double> length;
 
-    // for (HalfEdge* edge : object->edges) {
-    //     length[edge] = edge->length();
-    // }
+    for (HalfEdge* edge : object->edges) {
+        length[edge] = edge->length();
+    }
 
     for (Face* face : object->faces) {
 
         if (! face->isExterior) {
 
-            // double a = length[face->edge];
-            // double b = length[face->edge->next];
-            // double c = length[face->edge->next->next];
+            double a = length[face->edge];
+            double b = length[face->edge->next];
+            double c = length[face->edge->next->next];
 
-            // //Half Perimeter
-            // double s = (a + b + c)/2;
+            //Half Perimeter
+            double s = (a + b + c)/2;
 
-            // face->inradius = sqrt(((s-a)*(s-b)*(s-c)) / s);
-
-            double productOfRadii = 1;
-            double sumOfRadii = 0;
-
-            HalfEdge* start = face->edge;
-            HalfEdge* current = start;
-
-            do {
-                productOfRadii *= current->origin->radius;
-                sumOfRadii += current->origin->radius;
-                current = current->next;
-            }
-            while (current != start);
-
-            face->inradius = sqrt(productOfRadii / sumOfRadii);
+            face->inradius = sqrt(((s-a)*(s-b)*(s-c)) / s);
 
         }
-
     }
-
 }
 //
 // Need to check that the correct radii are being used

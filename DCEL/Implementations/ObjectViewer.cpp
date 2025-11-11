@@ -94,7 +94,20 @@ void ObjectViewer::display() {
         for (const Face* face : object->faces) {
 
             double radius = face->inradius * scale;
-            array<double, 3> center = toWindowCoords(face->centroid());
+
+            double a = face->edge->length();
+            double b = face->edge->next->length();
+            double c = face->edge->next->next->length();
+
+            auto oa = face->edge->next->next->origin->position;
+            auto ob = face->edge->origin->position;
+            auto oc = face->edge->next->origin->position;
+
+            array<double, 3> center = {(a*oa[0] + b*ob[0] + c*oc[0]) / (a+b+c), (a*oa[1] + b*ob[1] + c*oc[1]) / (a+b+c), 0};
+
+            center = toWindowCoords(center);
+
+            // array<double, 3> center = toWindowCoords(face->centroid());
             sf::Vector2f position(
                 center[1]-radius, center[0]-radius
             );
