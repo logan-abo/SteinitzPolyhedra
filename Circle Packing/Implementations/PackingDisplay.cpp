@@ -58,7 +58,7 @@ void PackingDisplay::computeShapes() {
 
 void PackingDisplay::display() {
 
-    sf::RenderWindow window(sf::VideoMode({width, height}), "Object Viewer");
+    sf::RenderWindow window(sf::VideoMode({width, height}), "Circle Packing");
 
     while (window.isOpen()) {
 
@@ -67,16 +67,6 @@ void PackingDisplay::display() {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
             }
-
-            // if (event->is<sf::Event::MouseButtonPressed>()) {
-
-            //     int mouseX = sf::Mouse::getPosition(window).x;
-            //     int mouseY = sf::Mouse::getPosition(window).y;
-
-            //     triangulate(mouseX, mouseY);
-
-            // }
-
         }
 
         window.clear(sf::Color::White);

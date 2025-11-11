@@ -91,6 +91,25 @@ void ObjectViewer::display() {
             window.draw(face);
 
         }
+        for (const Face* face : object->faces) {
+
+            double radius = face->inradius * scale;
+            array<double, 3> center = toWindowCoords(face->centroid());
+            sf::Vector2f position(
+                center[0]-radius, center[1]-radius
+            );
+
+            sf::CircleShape drawableCircle(radius);
+
+            drawableCircle.setPosition(position);
+
+            drawableCircle.setOutlineThickness(1);
+            drawableCircle.setOutlineColor(sf::Color::Black);
+            drawableCircle.setFillColor(sf::Color::Transparent);
+
+            window.draw(drawableCircle);
+
+        }
 
         window.display();
     }
@@ -117,21 +136,21 @@ array<double, 3> ObjectViewer::toObjectCoords(array<double, 3> coords) {
 }
 
 
-void ObjectViewer::triangulate(int x, int y) {
+// void ObjectViewer::triangulate(int x, int y) {
 
-    sf::Vector2f pos(x, y);
+//     sf::Vector2f pos(x, y);
 
-    for (int i=faceShapes.size()-1 ; i>=0 ; i--) {
+//     for (int i=faceShapes.size()-1 ; i>=0 ; i--) {
 
-        if (faceShapes[i].getGlobalBounds().contains(pos)) {
+//         if (faceShapes[i].getGlobalBounds().contains(pos)) {
 
-            object->triangulate(i);
-            computeFaces();
+//             object->triangulate(i);
+//             computeFaces();
 
-            return;
+//             return;
 
-        }
+//         }
 
-    }
+//     }
 
-}
+// }

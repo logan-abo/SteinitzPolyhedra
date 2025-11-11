@@ -31,6 +31,7 @@
                 "-IGraphs/Interfaces",
                 "-ICircle\\ Packing/Interfaces",
                 "-IC:/SFML/SFML-3.0.2/include",
+                "-IC:/eigen-5.0.0",
 
                 //Library directories
                 "-LC:/SFML/SFML-3.0.2/lib",
