@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <unordered_map>
+#include <iostream>
 
 #include <Eigen/Dense>
 
@@ -22,7 +23,7 @@ class CirclePacking {
     private:
 
         PlanarEmbedding* embedding;
-        vector<vector<int>> edgeConductance;
+        vector<vector<double>> edgeConductance;
 
         unordered_map<Vertex*, int> vertexLookup;
 
@@ -34,6 +35,7 @@ class CirclePacking {
 
         //Step A
         void placeExteriorCircles(); //DONE
+        void scaleToUnitDisc(double boundingRadius);
         double estimateBoundingRadius() const; //DONE
         double sumExteriorOverRho(double rho) const; //DONE
 
@@ -50,6 +52,7 @@ class CirclePacking {
             placeExteriorCircles();
             placeInteriorCircles();
             computeEffectiveRadii();
+            std::cout << "Round complete." << std::endl;
         }
         
 

@@ -14,7 +14,7 @@ using std::array;
 
 
 ObjectViewer::ObjectViewer(DCEL& obj) :
-    scale(100), 
+    scale(200), 
     width(1000), 
     height(850) {
     

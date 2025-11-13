@@ -19,7 +19,7 @@ using std::array;
 
 
 PackingDisplay::PackingDisplay(CirclePacking& obj) :
-    scale(100), 
+    scale(200), 
     width(1000), 
     height(850) {
     
