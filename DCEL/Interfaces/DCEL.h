@@ -34,6 +34,7 @@ class DCEL {
         
         void triangulate();
         void triangulate(int faceIndex);
+        void triangulate(Face* face);
 
 };
 

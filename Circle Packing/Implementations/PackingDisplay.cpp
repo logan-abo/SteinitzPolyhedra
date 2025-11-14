@@ -19,7 +19,7 @@ using std::array;
 
 
 PackingDisplay::PackingDisplay(CirclePacking& obj) :
-    scale(200), 
+    scale(300), 
     width(1000), 
     height(850) {
     
@@ -74,12 +74,14 @@ void PackingDisplay::display() {
 
         window.clear(sf::Color::White);
 
+        //Display circle Packing
         for (const sf::CircleShape& circle : circleShapes) {
 
             window.draw(circle);
 
         }
 
+        //Display underlying graph of circle centers
         for (Face* face : object->object->faces) {
 
             HalfEdge* start = face->edge;
@@ -109,6 +111,40 @@ void PackingDisplay::display() {
             window.draw(convex);
 
         }
+
+        //Display Incircles
+        // for (const Face* face : object->object->faces) {
+
+        //     double radius = face->inradius * scale;
+
+        //     double a = face->edge->length();
+        //     double b = face->edge->next->length();
+        //     double c = face->edge->next->next->length();
+
+        //     auto oa = face->edge->next->next->origin->position;
+        //     auto ob = face->edge->origin->position;
+        //     auto oc = face->edge->next->origin->position;
+
+        //     array<double, 2> center = {(a*oa[0] + b*ob[0] + c*oc[0]) / (a+b+c), (a*oa[1] + b*ob[1] + c*oc[1]) / (a+b+c)};
+
+        //     center = toWindowCoords(center);
+
+        //     // array<double, 3> center = toWindowCoords(face->centroid());
+        //     sf::Vector2f position(
+        //         center[1]-radius, center[0]-radius
+        //     );
+
+        //     sf::CircleShape drawableCircle(radius);
+
+        //     drawableCircle.setPosition(position);
+
+        //     drawableCircle.setOutlineThickness(1);
+        //     drawableCircle.setOutlineColor(sf::Color::Black);
+        //     drawableCircle.setFillColor(sf::Color::Transparent);
+
+        //     window.draw(drawableCircle);
+
+        // }
 
         window.display();
     }

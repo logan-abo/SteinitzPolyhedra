@@ -52,7 +52,6 @@ class CirclePacking {
             placeExteriorCircles();
             placeInteriorCircles();
             computeEffectiveRadii();
-            std::cout << "Round complete." << std::endl;
         }
         
 
