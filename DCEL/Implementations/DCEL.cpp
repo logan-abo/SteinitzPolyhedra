@@ -132,11 +132,7 @@ DCEL::DCEL(const PlanarEmbedding& g) {
     //create faces and match with half edges
     for (HalfEdge* edge : edges) {
 
-        // std::cout << "In HalfEdge loop" <<std::endl;
-
         if (!(edge->face)) {
-
-            // std::cout << "Creating new face" <<std::endl;
 
             Face* newFace = new Face;
             newFace->edge = edge;
@@ -165,15 +161,12 @@ DCEL::DCEL(const PlanarEmbedding& g) {
 
         HalfEdge* currentLeaving = vertex->leaving;
 
-        while (exteriorVertices.find(currentLeaving->twin->origin) == exteriorVertices.end()) {
+        while (vertex->leaving->face != exteriorFace) {
 
             vertex->leaving = currentLeaving->twin->next;
             currentLeaving = vertex->leaving;
         }
     }
-
-    std::cout << "Num Exterior Vertices: ";
-    std::cout << exteriorVertices.size() << std::endl;
 
 }
 
@@ -269,6 +262,16 @@ void DCEL::triangulate(int faceIndex) {
     edges[oldNumEdges]->twin = edges[edges.size()-1];
     edges[edges.size()-1]->twin = edges[oldNumEdges];
     
+}
+
+void DCEL::triangulate(Face* oldFace) {
+
+    int faceIndex = std::distance(faces.begin(), 
+                                  std::find(faces.begin(), 
+                                            faces.end(), 
+                                            oldFace));
+    triangulate(faceIndex);
+
 }
 
 

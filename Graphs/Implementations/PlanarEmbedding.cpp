@@ -95,14 +95,6 @@ PlanarEmbedding::PlanarEmbedding(const SimpleGraph& g,
         adjacencyList.push_back(clockwiseNeighbors);
 
     }
-
-    // for (vector<int> adjacencies : adjacencyList) {
-    //     for (int adjacency : adjacencies) {
-    //         std::cout << adjacency;
-    //     }
-    //     std::cout << std::endl;
-    // }
-
 }
 
 int PlanarEmbedding::clockwiseNextFrom(int vertex, int previous) const {
