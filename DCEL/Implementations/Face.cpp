@@ -66,7 +66,7 @@ int Face::numSides() {
 
 }
 
-std::array<double, 3> Face::centroid() {
+std::array<double, 3> Face::centroid() const {
 
         int numSides = 0;
 

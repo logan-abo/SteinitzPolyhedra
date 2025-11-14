@@ -1,9 +1,12 @@
+#define _USE_MATH_DEFINES
+
 #include "../../Graphs/Interfaces/PlanarEmbedding.h"
 #include "../Interfaces/CirclePacking.h"
 #include "../Interfaces/Circle.h"
 #include "../../DCEL/Interfaces/DCEL.h"
 
-#define _USE_MATH_DEFINES
+#include <Eigen/Dense>
+
 #include <cmath>
 #include <vector>
 #include <unordered_map>
@@ -11,6 +14,7 @@
 #include <unordered_set>
 #include <numeric>
 #include <algorithm>
+#include <iostream>
 
 using std::vector;
 using std::unordered_map;
@@ -24,8 +28,6 @@ CirclePacking::CirclePacking(DCEL& dcel) {
 
     dcel.triangulate();
 
-    // embedding = new PlanarEmbedding(dcel);
-
     //Add interior vertices first
     for (Vertex* vertex : dcel.vertices) {
         if (!dcel.exteriorVertices.count(vertex)) {
@@ -34,20 +36,26 @@ CirclePacking::CirclePacking(DCEL& dcel) {
         }
     }
     interiorVertexCount = centers.size();
-    //Add correct exterior indices last (iterating through vertices() to add counterclockwise)
+    //Then add exterior vertices (iterating through vertices() to add counterclockwise)
     for (Vertex* vertex : dcel.exteriorFace->vertices()) {
         centers.push_back(vertex);
     }
     
-    computeEffectiveRadii();
+    //createLookup for quickly connecting DCEL to adjacencyMatrix
+    for (int i=0 ; i<centers.size() ; i++) {
+        vertexLookup[centers[i]] = i;
+    }
 
-    //PART A
-    placeExteriorCircles();
+    createAdjacencyMatrix();
 
-    //These should happen in a constructor for a planar embedding object
-    //  organize vertices: interior first, exterior last (organized counterclockwise)
-    //  --for every vertex, create adjacency list, organized counterclockwise--
 
+    // Full Approximation
+    for (int i=0 ; i<100 ; i++) {
+        approximationStep();
+    }
+
+
+    //THE ALGORITHM
     //STEP C:
     //  Calculate angles of sectors for every vertex
     //      Calculate aim ofevery vertex (2PI if interior, sum of sector angles if exterior)
@@ -67,13 +75,58 @@ CirclePacking::CirclePacking(DCEL& dcel) {
     
 }
 
+
+//Initializes edge conductance matrix to standard adjacency matrix values
+void CirclePacking::createAdjacencyMatrix() {
+
+    //Initialize Empty matrix
+    edgeConductance = vector<vector<double>>(centers.size(), vector<double>(centers.size(), 0));
+
+    for (HalfEdge* edge : object->edges) {
+
+        edgeConductance[vertexLookup[edge->origin]][vertexLookup[edge->twin->origin]] = 1;
+    }
+
+    // std::cout << "Adjacency Matrix" << std::endl;
+    // for (vector<double> row : edgeConductance) {
+    //     for (double entry : row) {
+    //         std::cout << entry;
+    //         std::cout << ", ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
+
+    // std::cout << "Interior Adjacencies" << std::endl;
+    // for (int i=0 ; i<interiorVertexCount ; i++) {
+    //     for (int j = 0 ; j<interiorVertexCount ; j++) {
+    //         std::cout << edgeConductance[i][j];
+    //         std::cout << ", ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
+
+    // std::cout << "Exterior Adjacencies" << std::endl;
+    // for (int i=interiorVertexCount ; i<centers.size() ; i++) {
+    //     for (int j=interiorVertexCount ; j<centers.size() ; j++) {
+    //         std::cout << edgeConductance[i][j];
+    //         std::cout << ", ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
+
+}
+
+
 //STEP C:
     //  Calculate angles of sectors for every vertex
     //      Calculate aim ofevery vertex (2PI if interior, sum of sector angles if exterior)
     //      Use this to calculate effective radius of every vertex
-void CirclePacking::computeEffectiveRadii() {
 
-    radii.clear();
+// Checked using AI, has not been verified visually or on paper
+void CirclePacking::computeEffectiveRadii() {
 
     //Effective radii for interior vertices
     // Aim is 2pi
@@ -100,7 +153,7 @@ void CirclePacking::computeEffectiveRadii() {
         }
         while (current != start);
 
-        radii.push_back( sqrt(areaSum / (2*M_PI)) );
+        centers[i]->radius = sqrt(areaSum / (2*M_PI));
 
     }
 
@@ -124,13 +177,16 @@ void CirclePacking::computeEffectiveRadii() {
 
             aim += angle;
 
+            current = current->twin->next;
+
         }
 
-        radii.push_back( sqrt(areaSum / aim) );
+        centers[i]->radius = sqrt(areaSum / aim);
     }
 
 }
 //
+// Checked using AI, has not been verified visually or on paper
 double CirclePacking::sectorRadius(HalfEdge* edge) const {
 
     // much nicer than index-modulo, takes advantage of DCEL pointers
@@ -145,12 +201,50 @@ double CirclePacking::sectorRadius(HalfEdge* edge) const {
 //      use estimated external radius to calculate location of next exterior circle
 //      place all exterior circles succeessively
 //  Rescale all circles to be within unit circle 
-double CirclePacking::estimateBoundingRadius() const {
 
-    double upper = std::accumulate(radii.begin()+interiorVertexCount, 
-                                   radii.end(), 0.0);
-    double lower = *std::max_element(radii.begin() + interiorVertexCount,
-                                     radii.end());
+// Correctly places exteriors tangent to each other
+// may not center them in the correct place
+// Paper says that the bounding circle is to be centered at the origin
+void CirclePacking::placeExteriorCircles() {
+
+    double rho = estimateBoundingRadius();
+
+    //Place the first exterior circle
+    centers[interiorVertexCount]->relocate({
+        rho-centers[interiorVertexCount]->radius,
+        0,
+        centers[interiorVertexCount]->position[2]
+    });
+
+    double cummulativeAngle = 0;
+
+    for (int i=interiorVertexCount+1 ; i<centers.size() ; i++) {
+
+        double radius = rho - centers[i]->radius;
+        cummulativeAngle += std::acos(1 - 
+            (2 * centers[i-1]->radius * centers[i]->radius) / (radius * (rho - centers[i-1]->radius)));
+
+        centers[i]->relocate({
+            radius*std::cos(cummulativeAngle),
+            radius*std::sin(cummulativeAngle),
+            centers[i]->position[2]
+        });
+    }
+
+    scaleToUnitDisc(rho);
+
+}
+//
+// Definitely Functional
+double CirclePacking::estimateBoundingRadius() const { 
+
+    double upper = std::accumulate(centers.begin()+interiorVertexCount, centers.end(), 0.0,
+        [](double s, const Vertex* v) {
+            return s + v->radius;
+        });
+    double lower = 0;
+    // double lower = *std::max_element(radii.begin() + interiorVertexCount,
+    //                                  radii.end());
 
     double rho;
     double approx;
@@ -174,47 +268,32 @@ double CirclePacking::estimateBoundingRadius() const {
     return rho;
 }
 //
+// Must be working since used in placeExteriorCircles()
 double CirclePacking::sumExteriorOverRho(double rho) const {
 
     double sum = 0;
 
-    for (int i=interiorVertexCount ; i<radii.size()-1 ; i++) {
+    for (int i=interiorVertexCount ; i<centers.size()-1 ; i++) {
 
         sum += std::acos(1 - 
-            (2 * radii[i] * radii[i+1]) / 
-            ((rho - radii[i]) * (rho - radii[i+1])));
+            (2 * centers[i]->radius * centers[i+1]->radius) / 
+            ((rho - centers[i]->radius) * (rho - centers[i+1]->radius)));
 
     }
 
     return sum + std::acos(1 - 
-        (2 * radii[radii.size()-1] * radii[interiorVertexCount]) / 
-        ((rho - radii[radii.size()-1]) * (rho - radii[interiorVertexCount])));
+        (2 * centers[centers.size()-1]->radius * centers[interiorVertexCount]->radius) / 
+        ((rho - centers[centers.size()-1]->radius) * (rho - centers[interiorVertexCount]->radius)));
 
 }
 //
-void CirclePacking::placeExteriorCircles() {
+// I mean, it is scaled. Not sure the unit disc matters for calculation
+void CirclePacking::scaleToUnitDisc(double boundingRadius) {
 
-    double rho = estimateBoundingRadius();
+    for (Vertex* vertex : centers) {
 
-    //Place the first exterior circle
-    centers[interiorVertexCount]->relocate({
-        rho-radii[interiorVertexCount],
-        0,
-        centers[interiorVertexCount]->position[2]
-    });
+        vertex->scale(1/boundingRadius);
 
-    double cummulativeAngle = 0;
-
-    for (int i=interiorVertexCount+1 ; i<centers.size() ; i++) {
-
-        double radius = rho - radii[i];
-        cummulativeAngle += std::acos(1 - (2*radii[i-1]*radii[i]) / (radius*(rho - radii[i-1])));
-
-        centers[i]->relocate({
-            radius*std::cos(cummulativeAngle),
-            radius*std::sin(cummulativeAngle),
-            centers[i]->position[2]
-        });
     }
 
 }
@@ -226,19 +305,181 @@ void CirclePacking::placeExteriorCircles() {
 //  Calculate node conductance (sum of incident edge conductance)
 //  Create Transition probability matrix
 //The crucial step: solve matrix system for centers of interior vertices
-void CirclePacking::computeInradii() const {
 
-    // unordered_map<Face*, double> inradii;
+// Only deals with effective radius to compute an inradius of the given circle triples
+void CirclePacking::computeInradii() {
 
-    // for (Face* face : object->faces) {
+    for (Face* face : object->faces) {
+        if (! face->isExterior) {
 
-    //     double productOfRadii = 1;
-    //     double sumOfRadii = 0;
+            double ra = face->edge->origin->radius;
+            double rb = face->edge->next->origin->radius;
+            double rc = face->edge->next->next->origin->radius;
 
-    //     inradii[face] = sqrt(productOfRadii / sumOfRadii);
+            face->inradius = sqrt( (ra*rb*rc) / (ra+rb+rc) );
 
-    // }
+        }
+    }
 }
+//
+// Need to check that the correct radii are being used
+void CirclePacking::computeEdgeConductance() {
+
+    for (HalfEdge* edge : object->edges) {
+
+        // if ( object->exteriorVertices.count(edge->origin) && 
+        //      object->exteriorVertices.count(edge->twin->origin)) 
+        //     continue;
+
+        // double denominator = (edge->length()*edge->length())/2;
+
+        // double conductance = (edge->face->inradius * edge->twin->face->inradius) /
+        //                      denominator;
+
+
+        double conductance = (edge->face->inradius + edge->twin->face->inradius) /
+                             (edge->origin->radius + edge->twin->origin->radius);
+
+        // std::cout << "Conductance: ";
+        // std::cout << vertexLookup[edge->origin];
+        // std::cout << ", ";
+        // std::cout << vertexLookup[edge->twin->origin] << std::endl << "     ";
+        // std::cout << conductance << std::endl;
+
+        edgeConductance[vertexLookup[edge->origin]][vertexLookup[edge->twin->origin]] = conductance;
+
+    }
+    // std::cout << std::endl;
+}
+//
+// Needs to be checked
+// Check that zeros match with adjacency matrix (if u and v arent adjacent and along the diagonal)
+// Is node conductance always the sum of entries in the edge conductance matrix?
+Eigen::MatrixXd CirclePacking::interiorTransitionProbabilities() const {
+
+    Eigen::MatrixXd transitionProbabilities = Eigen::MatrixXd::Zero(interiorVertexCount, interiorVertexCount);
+
+    for (int i=0 ; i<interiorVertexCount ; i++) {
+
+        double conductanceSum = std::accumulate(edgeConductance[i].begin(), 
+                                                edgeConductance[i].end(), 0.0);
+
+        for (int j=0 ; j<interiorVertexCount ; j++) {
+            if (edgeConductance[i][j] != 0) {
+
+                transitionProbabilities(i, j) = edgeConductance[i][j] / conductanceSum;
+            }
+        }
+    }
+
+    // std::cout << "Interior Probabilities: " << std::endl;
+    // for (int i=0 ; i<transitionProbabilities.rows() ; i++) {
+    //     for (int j=0 ; j<transitionProbabilities.cols() ; j++) {
+    //         std::cout << transitionProbabilities(i, j);
+    //         std::cout << ", ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
+
+    return transitionProbabilities;
+}
+//
+// Needs to be checked
+// Same as interiorTransitionProbabilities
+Eigen::MatrixXd CirclePacking::exteriorTransitionProbabilities() const {
+
+    Eigen::MatrixXd transitionProbabilities = Eigen::MatrixXd::Zero(interiorVertexCount, centers.size()-interiorVertexCount);
+
+    for (int i=0 ; i<interiorVertexCount ; i++) {
+
+        double conductanceSum = std::accumulate(edgeConductance[i].begin(), 
+                                                edgeConductance[i].end(), 0.0);
+
+        for (int j=interiorVertexCount ; j<centers.size() ; j++) {
+            if (edgeConductance[i][j]) {
+                
+                transitionProbabilities(i, j-interiorVertexCount) = edgeConductance[i][j] / conductanceSum;
+            }
+        }
+        
+    }
+    std::cout << std::endl;
+
+    // std::cout << "Exterior Probabilities: " << std::endl;
+    // for (int i=0 ; i<transitionProbabilities.rows() ; i++) {
+    //     for (int j=0 ; j<transitionProbabilities.cols() ; j++) {
+    //         std::cout << transitionProbabilities(i, j);
+    //         std::cout << ", ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
+
+    return transitionProbabilities;
+}
+//
+// Needs to be checked
+// Must better understand how to use Eigen solver
+void CirclePacking::placeInteriorCircles() {
+
+    computeInradii();
+    computeEdgeConductance();
+
+    // std::cout << "Interior Conductance" << std::endl;
+    // for (int i=0 ; i<interiorVertexCount ; i++) {
+    //     for (int j = 0 ; j<interiorVertexCount ; j++) {
+    //         std::cout << edgeConductance[i][j];
+    //         std::cout << ", ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
+
+    // std::cout << "Exterior Conductance" << std::endl;
+    // for (int i=0 ; i<interiorVertexCount ; i++) {
+    //     for (int j=interiorVertexCount ; j<centers.size() ; j++) {
+    //         std::cout << edgeConductance[i][j];
+    //         std::cout << ", ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // std::cout << std::endl;
+
+    Eigen::MatrixXd B0 = interiorTransitionProbabilities() - Eigen::MatrixXd::Identity(interiorVertexCount, interiorVertexCount);
+    Eigen::MatrixXd Ad = exteriorTransitionProbabilities();
+
+    Eigen::MatrixXd Zd = Eigen::MatrixXd::Zero(centers.size()-interiorVertexCount, 2);
+    for (int i=interiorVertexCount ;  i<centers.size() ; i++) {
+
+        Zd(i-interiorVertexCount, 0) = centers[i]->position[0];
+        Zd(i-interiorVertexCount, 1) = centers[i]->position[1];
+
+        // std::cout << centers[i]->position[0];
+        // std::cout << ", ";
+        // std::cout << centers[i]->position[1] << std::endl;
+
+    }
+
+    Eigen::MatrixXd Z0 = B0.lu().solve(-Ad * Zd);
+
+    //solve:
+    //  (interiorTransitionProbabilities - IDENTITY(interiorVertexCount)) * innerCenters 
+    //                  = 
+    //  -exteriorTransitionProbabilities * outerCenters )
+    //for:
+    //  innerCenters
+
+    //update innerCenter->position based on result
+    for (int i=0 ; i<interiorVertexCount ; i++) {
+        centers[i]->position[0] = Z0(i, 0);
+        centers[i]->position[1] = Z0(i, 1);
+        std::cout << centers[i]->position[0] << std::endl;
+        std::cout << centers[i]->position[1] << std::endl;
+    }
+
+}
+
 
 
 //Calculate desired sum of sector angles around a vertex

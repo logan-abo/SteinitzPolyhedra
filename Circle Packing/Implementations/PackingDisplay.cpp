@@ -8,6 +8,8 @@
 
 #include "../../Graphs/Interfaces/PlanarEmbedding.h"
 #include "../../DCEL/Interfaces/Vertex.h"
+#include "../../DCEL/Interfaces/HalfEdge.h"
+#include "../../DCEL/Interfaces/DCEL.h"
 #include "../Interfaces/PackingDisplay.h"
 #include "../Interfaces/CirclePacking.h"
 #include "../Interfaces/Circle.h"
@@ -17,7 +19,7 @@ using std::array;
 
 
 PackingDisplay::PackingDisplay(CirclePacking& obj) :
-    scale(100), 
+    scale(200), 
     width(1000), 
     height(850) {
     
@@ -33,12 +35,13 @@ void PackingDisplay::computeShapes() {
 
     for (int i=0 ; i<object->centers.size() ; i++) {
 
-        double radius = object->radii[i] * scale;
+        double radius = object->centers[i]->radius * scale;
         array<double, 2> center = toWindowCoords({object->centers[i]->position[0],
                                                   object->centers[i]->position[1]});
 
+        // FLIP ACROSS Y=X
         sf::Vector2f position(
-            center[0]-radius, center[1]-radius
+            center[1]-radius, center[0]-radius
         );
 
         sf::CircleShape drawableCircle(radius);
@@ -58,7 +61,7 @@ void PackingDisplay::computeShapes() {
 
 void PackingDisplay::display() {
 
-    sf::RenderWindow window(sf::VideoMode({width, height}), "Object Viewer");
+    sf::RenderWindow window(sf::VideoMode({width, height}), "Circle Packing");
 
     while (window.isOpen()) {
 
@@ -67,16 +70,6 @@ void PackingDisplay::display() {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
             }
-
-            // if (event->is<sf::Event::MouseButtonPressed>()) {
-
-            //     int mouseX = sf::Mouse::getPosition(window).x;
-            //     int mouseY = sf::Mouse::getPosition(window).y;
-
-            //     triangulate(mouseX, mouseY);
-
-            // }
-
         }
 
         window.clear(sf::Color::White);
@@ -84,6 +77,36 @@ void PackingDisplay::display() {
         for (const sf::CircleShape& circle : circleShapes) {
 
             window.draw(circle);
+
+        }
+
+        for (Face* face : object->object->faces) {
+
+            HalfEdge* start = face->edge;
+            HalfEdge* current = start;
+
+            sf::ConvexShape convex;
+            convex.setOutlineThickness(1);
+            convex.setOutlineColor(sf::Color::Black);
+            convex.setFillColor(sf::Color::Transparent);
+
+            vector<array<double, 2>> points;
+
+            do {
+
+                points.push_back(toWindowCoords({current->origin->position[0],current->origin->position[1]}));
+                current = current->next;
+
+            } while ( current != start );
+
+            convex.setPointCount(points.size());
+
+            // FLIP ACROSS Y=X
+            for (int i=0 ; i<points.size() ; i++) {
+                convex.setPoint(i, {points[i][1], points[i][0]});
+            }
+
+            window.draw(convex);
 
         }
 

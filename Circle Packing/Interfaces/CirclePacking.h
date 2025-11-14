@@ -3,9 +3,14 @@
 
 #include <vector>
 #include <array>
+#include <unordered_map>
+#include <iostream>
+
+#include <Eigen/Dense>
 
 using std::vector;
 using std::array;
+using std::unordered_map;
 
 class Circle;
 class PlanarEmbedding;
@@ -17,35 +22,49 @@ class CirclePacking {
 
     private:
 
-        DCEL* object;
         PlanarEmbedding* embedding;
+        vector<vector<double>> edgeConductance;
 
-        vector<double> aims;
+        unordered_map<Vertex*, int> vertexLookup;
 
+        void createAdjacencyMatrix();
+
+        //Step B
         void computeEffectiveRadii(); //DONE
         double sectorRadius(HalfEdge* counterClockwiseMostEdge) const; //DONE
 
-        // double aim(int vertexIndex) const; //DONE
-
+        //Step A
+        void placeExteriorCircles(); //DONE
+        void scaleToUnitDisc(double boundingRadius);
         double estimateBoundingRadius() const; //DONE
         double sumExteriorOverRho(double rho) const; //DONE
 
-        void placeExteriorCircles(); //DONE
+        //Step C
+        void placeInteriorCircles();
+        void computeInradii(); //DONE
+        void computeEdgeConductance(); //DONE
+        Eigen::MatrixXd interiorTransitionProbabilities() const;
+        Eigen::MatrixXd exteriorTransitionProbabilities() const;
 
+
+        //Do one full iteration of packing approximation algorithm
+        void approximationStep() {
+            placeExteriorCircles();
+            placeInteriorCircles();
+            computeEffectiveRadii();
+            std::cout << "Round complete." << std::endl;
+        }
         
-        void computeInradii() const;
-
-
-        void createInitialSectors();
 
         int interiorVertexCount;
 
     public: 
 
-        vector<Vertex*> centers;
-        vector<double> radii;
-
         CirclePacking(DCEL& planeGraph);
+        
+        DCEL* object;
+
+        vector<Vertex*> centers;
 
 };
 

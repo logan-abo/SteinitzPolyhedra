@@ -18,13 +18,14 @@ class Face {
         bool isExterior;
 
         HalfEdge* edge = 0;
+        double inradius = 0;
 
         int numSides();
         
         vector<Vertex*> vertices();
         vector<HalfEdge*> edges();
         
-        array<double, 3> centroid();
+        array<double, 3> centroid() const;
 
 };
 

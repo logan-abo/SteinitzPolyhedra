@@ -14,7 +14,7 @@ using std::array;
 
 
 ObjectViewer::ObjectViewer(DCEL& obj) :
-    scale(100), 
+    scale(200), 
     width(1000), 
     height(850) {
     
@@ -91,6 +91,38 @@ void ObjectViewer::display() {
             window.draw(face);
 
         }
+        for (const Face* face : object->faces) {
+
+            double radius = face->inradius * scale;
+
+            double a = face->edge->length();
+            double b = face->edge->next->length();
+            double c = face->edge->next->next->length();
+
+            auto oa = face->edge->next->next->origin->position;
+            auto ob = face->edge->origin->position;
+            auto oc = face->edge->next->origin->position;
+
+            array<double, 3> center = {(a*oa[0] + b*ob[0] + c*oc[0]) / (a+b+c), (a*oa[1] + b*ob[1] + c*oc[1]) / (a+b+c), 0};
+
+            center = toWindowCoords(center);
+
+            // array<double, 3> center = toWindowCoords(face->centroid());
+            sf::Vector2f position(
+                center[1]-radius, center[0]-radius
+            );
+
+            sf::CircleShape drawableCircle(radius);
+
+            drawableCircle.setPosition(position);
+
+            drawableCircle.setOutlineThickness(1);
+            drawableCircle.setOutlineColor(sf::Color::Black);
+            drawableCircle.setFillColor(sf::Color::Transparent);
+
+            window.draw(drawableCircle);
+
+        }
 
         window.display();
     }
@@ -117,21 +149,21 @@ array<double, 3> ObjectViewer::toObjectCoords(array<double, 3> coords) {
 }
 
 
-void ObjectViewer::triangulate(int x, int y) {
+// void ObjectViewer::triangulate(int x, int y) {
 
-    sf::Vector2f pos(x, y);
+//     sf::Vector2f pos(x, y);
 
-    for (int i=faceShapes.size()-1 ; i>=0 ; i--) {
+//     for (int i=faceShapes.size()-1 ; i>=0 ; i--) {
 
-        if (faceShapes[i].getGlobalBounds().contains(pos)) {
+//         if (faceShapes[i].getGlobalBounds().contains(pos)) {
 
-            object->triangulate(i);
-            computeFaces();
+//             object->triangulate(i);
+//             computeFaces();
 
-            return;
+//             return;
 
-        }
+//         }
 
-    }
+//     }
 
-}
+// }

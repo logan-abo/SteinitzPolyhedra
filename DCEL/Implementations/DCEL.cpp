@@ -1,8 +1,9 @@
+#define _USE_MATH_DEFINES
+
 #include "../Interfaces/DCEL.h"
 #include "../Interfaces/HalfEdge.h"
 #include "../../Graphs/Interfaces/PlanarEmbedding.h"
 
-#define _USE_MATH_DEFINES
 #include <vector>
 #include <utility>
 #include <map>

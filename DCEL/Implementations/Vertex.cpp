@@ -30,3 +30,12 @@ void Vertex::relocate(const std::array<double, 3>& loc) {
     position = loc;
 }
 
+void Vertex::scale(double scalar) {
+
+    position[0] *= scalar;
+    position[1] *= scalar;
+    position[2] *= scalar;
+
+    radius *= scalar;
+
+}

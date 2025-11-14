@@ -18,10 +18,11 @@ class Vertex {
         ~Vertex();
 
         std::array<double, 3> position;
-        
         HalfEdge* leaving = 0;
+        double radius = 0.5;
 
         void relocate(const std::array<double, 3>& loc);
+        void scale(double scalingFactor);
 
 };
 
