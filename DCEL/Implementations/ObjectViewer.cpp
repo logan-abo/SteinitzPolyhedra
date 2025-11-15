@@ -187,6 +187,7 @@ array<double, 3> ObjectViewer::toObjectCoords(array<double, 3> coords) {
 }
 
 
+
 // void ObjectViewer::triangulate(int x, int y) {
 // 
 //     sf::Vector2f pos(x, y);

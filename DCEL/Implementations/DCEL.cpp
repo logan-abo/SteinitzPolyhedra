@@ -291,12 +291,6 @@ void DCEL::triangulate(Face* oldFace) {
 
 void DCEL::addVertex(array<double, 3> coords) {
 
-    std::cout << "Creating Vertex: (";
-    std::cout << coords[0];
-    std::cout << ", ";
-    std::cout << coords[1];
-    std::cout << ")" << std::endl;
-
     // Create new Vertex (u)
     Vertex* newVertex = new Vertex(coords);
     vertices.push_back(newVertex);
@@ -318,14 +312,14 @@ void DCEL::addVertex(array<double, 3> coords) {
     }
 
     // rotate around v to find previous edge in exteriorFace
-    HalfEdge* vm_v = closestExterior->leaving;
+    HalfEdge* v_vm = closestExterior->leaving;
     do {
-        vm_v = vm_v->twin->next;
+        v_vm = v_vm->twin->next;
         std::cout << "Looping" << std::endl;
     }
-    while (exteriorVertices.count(vm_v->twin->origin) == 0);
+    while (exteriorVertices.count(v_vm->twin->origin) == 0);
 
-    HalfEdge* vm_previous = vm_v->twin;
+    HalfEdge* vm_previous = v_vm->twin;
     do {
         vm_previous = vm_previous->twin->next;
         std::cout << "Looping" << std::endl;
@@ -333,7 +327,7 @@ void DCEL::addVertex(array<double, 3> coords) {
     while (exteriorVertices.count(vm_previous->twin->origin) == 0);
 
     // Track 4 useful existing edges and create the 6 new edges
-    vm_v = vm_v->twin;
+    HalfEdge* vm_v = v_vm->twin;
     HalfEdge* v_vp = closestExterior->leaving;
     HalfEdge* v_vp_next = v_vp->next;
     //
