@@ -52,16 +52,20 @@ int main() {
     };
 
 
+    // Create Planar Embedding
     PlanarEmbedding planar(g, vertices);
+    // Create DCEL Structure of plane graph
     DCEL embed(planar); 
-    // DCEL embed(4);
-    
-    CirclePacking packingAttempt1(embed);
 
-    PackingDisplay packingDisplay(packingAttempt1);
-    packingDisplay.display();
-
+    // Graph GUI for modification
     ObjectViewer viewWindow(embed);
     viewWindow.display();
+    
+    // Pack the modified graph
+    CirclePacking packingAttempt1(embed);
+
+    // Display circle packing
+    PackingDisplay packingDisplay(packingAttempt1);
+    packingDisplay.display();
 
 }

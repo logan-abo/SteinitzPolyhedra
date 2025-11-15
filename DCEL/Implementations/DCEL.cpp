@@ -14,6 +14,18 @@
 #include <unordered_set>
 
 using std::map;
+using std::array;
+
+
+double distanceBetween(const Vertex* v, const Vertex* u) {
+
+    double dx = v->position[0] - u->position[0];
+    double dy = v->position[1] - u->position[1];
+    double dz = v->position[2] - u->position[2];
+
+    return sqrt(dx*dx + dy*dy + dy*dz);
+
+}
 
 
 //Create n-gon on the unit circle
@@ -181,6 +193,7 @@ DCEL::DCEL(const PlanarEmbedding& g) {
 // 
 // }
 
+
 DCEL::~DCEL() {
 
     std::cout << "DCEL DESTRUCTOR" << std::endl;
@@ -190,6 +203,7 @@ DCEL::~DCEL() {
     for (Face* face : faces) delete face;
 
 }
+
 
 void DCEL::triangulate() {
 
@@ -271,6 +285,136 @@ void DCEL::triangulate(Face* oldFace) {
                                             faces.end(), 
                                             oldFace));
     triangulate(faceIndex);
+
+}
+
+
+void DCEL::addVertex(array<double, 3> coords) {
+
+    // Create new Vertex (u)
+    Vertex* newVertex = new Vertex(coords);
+    vertices.push_back(newVertex);
+
+
+    // Find closest interior vertex (v)
+    Vertex* closestExterior;
+    double closestDistance = std::numeric_limits<double>::max();
+    
+    for (Vertex* vertex : exteriorFace->vertices()) {
+
+        double distance = distanceBetween(newVertex, vertex);
+        if (distance < closestDistance) {
+
+            closestExterior = vertex;
+            closestDistance = distance;
+
+        }
+    }
+
+    // rotate around v to find previous edge in exteriorFace
+    HalfEdge* v_vm = closestExterior->leaving;
+    do {
+        v_vm = v_vm->twin->next;
+        std::cout << "Looping" << std::endl;
+    }
+    while (exteriorVertices.count(v_vm->twin->origin) == 0);
+
+    HalfEdge* vm_previous = v_vm->twin;
+    do {
+        vm_previous = vm_previous->twin->next;
+        std::cout << "Looping" << std::endl;
+    }
+    while (exteriorVertices.count(vm_previous->twin->origin) == 0);
+
+    // Track 4 useful existing edges and create the 6 new edges
+    HalfEdge* vm_v = v_vm->twin;
+    HalfEdge* v_vp = closestExterior->leaving;
+    HalfEdge* v_vp_next = v_vp->next;
+    //
+    vm_previous = vm_previous->twin;
+    //
+    HalfEdge* v_u = new HalfEdge(closestExterior);
+    HalfEdge* u_v = new HalfEdge(newVertex);
+    HalfEdge* u_vp = new HalfEdge(newVertex);
+    HalfEdge* vp_u = new HalfEdge(closestExterior->leaving->twin->origin);
+    //
+    edges.push_back(v_u);
+    edges.push_back(u_v);
+    edges.push_back(u_vp);
+    edges.push_back(vp_u);
+    //
+    HalfEdge* vm_u = new HalfEdge(vm_v->origin);
+    HalfEdge* u_vm = new HalfEdge(newVertex);
+    //
+    edges.push_back(vm_u);
+    edges.push_back(u_vm);
+
+    // Track previous vertex in exterior (vm)
+    Vertex* previousExterior = vm_v->origin;
+
+    // Set nexts
+    vm_v->next = v_u;
+    v_u->next = u_vp;
+    u_vp->next = v_vp_next;
+    //
+    u_v->next = v_vp;
+    v_vp->next = vp_u;
+    vp_u->next = u_v;
+    //
+    //
+    vm_previous->next = vm_u;
+    vm_u->next = u_vp;
+    //
+    v_u->next = u_vm;
+    u_vm->next = vm_v;
+
+    // Pair twins
+    u_v->twin = v_u;
+    v_u->twin = u_v;
+    //
+    u_vp->twin = vp_u;
+    vp_u->twin = u_vp;
+    //
+    //
+    vm_u->twin = u_vm;
+    u_vm->twin = vm_u;
+
+    // Create the new face and set edge
+    Face* leftFace = new Face();
+    Face* rightFace = new Face();
+    //
+    faces.push_back(leftFace);
+    faces.push_back(rightFace);
+    //
+    leftFace->edge = u_v;
+    rightFace->edge = v_u;
+    exteriorFace->edge = u_vp;
+
+    // Match edges to faces
+    u_v->face = leftFace;
+    v_vp->face = leftFace;
+    vp_u->face = leftFace;
+    //
+    v_u->face = exteriorFace;
+    u_vp->face = exteriorFace;
+    //
+    //
+    vm_v->face = rightFace;
+    v_u->face = rightFace;
+    u_vm->face = rightFace;
+    //
+    vm_u->face = exteriorFace;
+
+    // Update vertex leaving edges
+    closestExterior->leaving = v_u;
+    newVertex->leaving = u_vp;
+    previousExterior->leaving = vm_u;
+
+    // New vertex is in the exterior
+    exteriorVertices.insert(newVertex);
+    exteriorVertices.erase(closestExterior);
+
+    std::cout << "BUILT" << std::endl;
 
 }
 

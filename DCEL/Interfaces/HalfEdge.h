@@ -9,6 +9,7 @@ class HalfEdge {
     public:
 
         HalfEdge();
+        HalfEdge(Vertex* org);
 
         Vertex* origin = 0;
 
