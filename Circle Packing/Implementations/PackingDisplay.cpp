@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <array>
-#include <iostream>
+#include <memory>
 
 #include <SFML/Graphics.hpp>
 
@@ -16,6 +16,7 @@
 
 using std::vector;
 using std::array;
+using std::unique_ptr;
 
 
 PackingDisplay::PackingDisplay(CirclePacking& obj) :
@@ -25,13 +26,19 @@ PackingDisplay::PackingDisplay(CirclePacking& obj) :
     
     object = &obj;
 
-    computeShapes();
+    recomputeShapes();
 }
 
 
-void PackingDisplay::computeShapes() {
+void PackingDisplay::recomputeShapes() {
 
-    circleShapes.clear();
+    drawableShapes.clear();
+    computeCircles();
+    computeUnderlyingGraph();
+
+}
+
+void PackingDisplay::computeCircles() {
 
     for (int i=0 ; i<object->centers.size() ; i++) {
 
@@ -44,20 +51,49 @@ void PackingDisplay::computeShapes() {
             center[0]-radius, center[1]-radius
         );
 
-        sf::CircleShape drawableCircle(radius);
+        sf::CircleShape* drawableCircle = new sf::CircleShape(radius);
 
-        drawableCircle.setPosition(position);
+        drawableCircle->setPosition(position);
 
-        drawableCircle.setOutlineThickness(1);
-        drawableCircle.setOutlineColor(sf::Color::Black);
-        drawableCircle.setFillColor(sf::Color::Transparent);
+        drawableCircle->setOutlineThickness(1);
+        drawableCircle->setOutlineColor(sf::Color::Black);
+        drawableCircle->setFillColor(sf::Color::Transparent);
 
-        circleShapes.push_back(drawableCircle);
-
-        // return;
+        drawableShapes.push_back(unique_ptr<sf::Drawable>(drawableCircle));
     }
 }
 
+void PackingDisplay::computeUnderlyingGraph() {
+
+    for (Face* face : object->object->faces) {
+
+        HalfEdge* start = face->edge;
+        HalfEdge* current = start;
+
+        sf::ConvexShape* convex = new sf::ConvexShape();
+        convex->setOutlineThickness(1);
+        convex->setOutlineColor(sf::Color::Black);
+        convex->setFillColor(sf::Color::Transparent);
+
+        vector<array<double, 2>> points;
+
+        do {
+
+            points.push_back(toWindowCoords({current->origin->position[0],current->origin->position[1]}));
+            current = current->next;
+
+        } while ( current != start );
+
+        convex->setPointCount(points.size());
+
+        for (int i=0 ; i<points.size() ; i++) {
+            convex->setPoint(i, {points[i][0], points[i][1]});
+        }
+
+        drawableShapes.push_back(unique_ptr<sf::Drawable>(convex));
+
+    }
+}
 
 void PackingDisplay::display() {
 
@@ -75,42 +111,41 @@ void PackingDisplay::display() {
         window.clear(sf::Color::White);
 
         //Display circle Packing
-        for (const sf::CircleShape& circle : circleShapes) {
+        for (const auto& drawablePtr : drawableShapes) {
 
-            window.draw(circle);
+            window.draw(*drawablePtr);
 
         }
 
         //Display underlying graph of circle centers
-        for (Face* face : object->object->faces) {
+        // for (Face* face : object->object->faces) {
 
-            HalfEdge* start = face->edge;
-            HalfEdge* current = start;
+        //     HalfEdge* start = face->edge;
+        //     HalfEdge* current = start;
 
-            sf::ConvexShape convex;
-            convex.setOutlineThickness(1);
-            convex.setOutlineColor(sf::Color::Black);
-            convex.setFillColor(sf::Color::Transparent);
+        //     sf::ConvexShape convex;
+        //     convex.setOutlineThickness(1);
+        //     convex.setOutlineColor(sf::Color::Black);
+        //     convex.setFillColor(sf::Color::Transparent);
 
-            vector<array<double, 2>> points;
+        //     vector<array<double, 2>> points;
 
-            do {
+        //     do {
 
-                points.push_back(toWindowCoords({current->origin->position[0],current->origin->position[1]}));
-                current = current->next;
+        //         points.push_back(toWindowCoords({current->origin->position[0],current->origin->position[1]}));
+        //         current = current->next;
 
-            } while ( current != start );
+        //     } while ( current != start );
 
-            convex.setPointCount(points.size());
+        //     convex.setPointCount(points.size());
 
-            // FLIP ACROSS Y=X
-            for (int i=0 ; i<points.size() ; i++) {
-                convex.setPoint(i, {points[i][0], points[i][1]});
-            }
+        //     for (int i=0 ; i<points.size() ; i++) {
+        //         convex.setPoint(i, {points[i][0], points[i][1]});
+        //     }
 
-            window.draw(convex);
+        //     window.draw(convex);
 
-        }
+        // }
 
         //Display Incircles
         // for (const Face* face : object->object->faces) {

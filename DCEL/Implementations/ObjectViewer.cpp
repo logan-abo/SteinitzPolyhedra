@@ -25,7 +25,6 @@ ObjectViewer::ObjectViewer(DCEL& obj) :
 
 void ObjectViewer::recomputeDisplayObjects() {
     computeFaces();
-    std::cout << "computed" << std::endl;
     computeIncircles();
 }
 

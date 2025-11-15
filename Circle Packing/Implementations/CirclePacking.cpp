@@ -59,23 +59,15 @@ CirclePacking::CirclePacking(DCEL& dcel) {
     createAdjacencyMatrix();
 
     std::cout << "Starting Packing..." << std::endl;
-    std::cout << std::endl;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     // Full Approximation
-    for (int i=0 ; i<75 ; i++) {
+    for (int i=0 ; i<100 ; i++) {
         approximationStep();
-        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-        std::cout << "Approximation Iteration ";
-        std::cout << i+1 << std::endl;
-        std::cout << "    Elapsed time: ";
-        std::cout << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-        std::cout << " seconds" <<std::endl;
     }
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::cout << std::endl;
     std::cout << "Total Elapsed time: ";
-    std::cout << std::chrono::duration_cast<std::chrono::minutes>(end - begin).count();
+    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000.0;
+    std::cout << std::endl;
 
     //THE ALGORITHM
     //STEP C:
