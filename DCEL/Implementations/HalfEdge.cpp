@@ -15,6 +15,12 @@ HalfEdge::HalfEdge() :
     next(nullptr), 
     face(nullptr) {}
 
+HalfEdge::HalfEdge(Vertex* org) {
+
+    origin = org;
+
+}
+
 double HalfEdge::length() {
 
     array<double, 3> v1 = this->origin->position;

@@ -36,6 +36,8 @@ class DCEL {
         void triangulate(int faceIndex);
         void triangulate(Face* face);
 
+        void addVertex(array<double, 3> coords);
+
 };
 
 #endif

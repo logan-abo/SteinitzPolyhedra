@@ -12,7 +12,7 @@ using std::array;
 class DCEL;
 class Face;
 
-class ObjectViewer {    
+class ObjectViewer {
 
     private:
 
@@ -24,11 +24,15 @@ class ObjectViewer {
         array<double, 3> toWindowCoords(array<double, 3> coords);
         array<double, 3> toObjectCoords(array<double, 3> coords);
 
+        void recomputeDisplayObjects();
         void computeFaces();
+        void computeIncircles();
+
         void triangulate(int x, int y);
 
         DCEL* object;
         vector<sf::ConvexShape> faceShapes;
+        vector<sf::CircleShape> incircles;
 
     public:
 

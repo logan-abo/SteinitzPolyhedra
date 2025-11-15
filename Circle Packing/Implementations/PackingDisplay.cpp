@@ -41,7 +41,7 @@ void PackingDisplay::computeShapes() {
 
         // FLIP ACROSS Y=X
         sf::Vector2f position(
-            center[1]-radius, center[0]-radius
+            center[0]-radius, center[1]-radius
         );
 
         sf::CircleShape drawableCircle(radius);
@@ -105,7 +105,7 @@ void PackingDisplay::display() {
 
             // FLIP ACROSS Y=X
             for (int i=0 ; i<points.size() ; i++) {
-                convex.setPoint(i, {points[i][1], points[i][0]});
+                convex.setPoint(i, {points[i][0], points[i][1]});
             }
 
             window.draw(convex);
@@ -155,7 +155,7 @@ void PackingDisplay::display() {
 array<double, 2> PackingDisplay::toWindowCoords(array<double, 2> coords) {
 
     double x = scale * coords[0] + (width/2.0);
-    double y = scale * coords[1] + (height/2.0);
+    double y = -scale * coords[1] + (height/2.0);
 
     return {x, y};
 
@@ -164,7 +164,7 @@ array<double, 2> PackingDisplay::toWindowCoords(array<double, 2> coords) {
 array<double, 2> PackingDisplay::toObjectCoords(array<double, 2> coords) {
 
     double x = (coords[0] - (width/2.0)) / scale;
-    double y = (coords[1] - (height/2.0)) / scale;
+    double y = -(coords[1] - (height/2.0)) / scale;
 
     return {x, y};
 
