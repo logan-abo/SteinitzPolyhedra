@@ -318,17 +318,26 @@ void DCEL::addVertex(array<double, 3> coords) {
     }
 
     // rotate around v to find previous edge in exteriorFace
-    HalfEdge* current = closestExterior->leaving;
+    HalfEdge* vm_v = closestExterior->leaving;
     do {
-        current = current->twin->next;
+        vm_v = vm_v->twin->next;
         std::cout << "Looping" << std::endl;
     }
-    while (exteriorVertices.count(current->twin->origin) == 0);
+    while (exteriorVertices.count(vm_v->twin->origin) == 0);
 
-    // Track 3 useful existing edges and create the 4 new edges
-    HalfEdge* vm_v = current->twin;
+    HalfEdge* vm_previous = vm_v->twin;
+    do {
+        vm_previous = vm_previous->twin->next;
+        std::cout << "Looping" << std::endl;
+    }
+    while (exteriorVertices.count(vm_previous->twin->origin) == 0);
+
+    // Track 4 useful existing edges and create the 6 new edges
+    vm_v = vm_v->twin;
     HalfEdge* v_vp = closestExterior->leaving;
     HalfEdge* v_vp_next = v_vp->next;
+    //
+    vm_previous = vm_previous->twin;
     //
     HalfEdge* v_u = new HalfEdge(closestExterior);
     HalfEdge* u_v = new HalfEdge(newVertex);
@@ -339,6 +348,15 @@ void DCEL::addVertex(array<double, 3> coords) {
     edges.push_back(u_v);
     edges.push_back(u_vp);
     edges.push_back(vp_u);
+    //
+    HalfEdge* vm_u = new HalfEdge(vm_v->origin);
+    HalfEdge* u_vm = new HalfEdge(newVertex);
+    //
+    edges.push_back(vm_u);
+    edges.push_back(u_vm);
+
+    // Track previous vertex in exterior (vm)
+    Vertex* previousExterior = vm_v->origin;
 
     // Set nexts
     vm_v->next = v_u;
@@ -348,6 +366,13 @@ void DCEL::addVertex(array<double, 3> coords) {
     u_v->next = v_vp;
     v_vp->next = vp_u;
     vp_u->next = u_v;
+    //
+    //
+    vm_previous->next = vm_u;
+    vm_u->next = u_vp;
+    //
+    v_u->next = u_vm;
+    u_vm->next = vm_v;
 
     // Pair twins
     u_v->twin = v_u;
@@ -355,26 +380,45 @@ void DCEL::addVertex(array<double, 3> coords) {
     //
     u_vp->twin = vp_u;
     vp_u->twin = u_vp;
+    //
+    //
+    vm_u->twin = u_vm;
+    u_vm->twin = vm_u;
 
     // Create the new face and set edge
-    Face* innerFace = new Face();
-    faces.push_back(innerFace);
-    innerFace->edge = u_v;
+    Face* leftFace = new Face();
+    Face* rightFace = new Face();
+    //
+    faces.push_back(leftFace);
+    faces.push_back(rightFace);
+    //
+    leftFace->edge = u_v;
+    rightFace->edge = v_u;
+    exteriorFace->edge = u_vp;
 
     // Match edges to faces
-    u_v->face = innerFace;
-    v_vp->face = innerFace;
-    vp_u->face = innerFace;
+    u_v->face = leftFace;
+    v_vp->face = leftFace;
+    vp_u->face = leftFace;
     //
     v_u->face = exteriorFace;
     u_vp->face = exteriorFace;
+    //
+    //
+    vm_v->face = rightFace;
+    v_u->face = rightFace;
+    u_vm->face = rightFace;
+    //
+    vm_u->face = exteriorFace;
 
     // Update vertex leaving edges
     closestExterior->leaving = v_u;
     newVertex->leaving = u_vp;
+    previousExterior->leaving = vm_u;
 
     // New vertex is in the exterior
     exteriorVertices.insert(newVertex);
+    exteriorVertices.erase(closestExterior);
 
     std::cout << "BUILT" << std::endl;
 

@@ -14,7 +14,7 @@ using std::array;
 
 
 ObjectViewer::ObjectViewer(DCEL& obj) :
-    scale(200), 
+    scale(150), 
     width(1000), 
     height(850) {
     
@@ -43,7 +43,7 @@ void ObjectViewer::computeFaces() {
             convex.setFillColor(sf::Color::Transparent);
 
             vector<array<double, 3>> points;
-            
+
             HalfEdge* start = face->edge;
             HalfEdge* current = start;
 
