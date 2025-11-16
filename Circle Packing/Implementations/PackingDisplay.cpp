@@ -33,9 +33,10 @@ PackingDisplay::PackingDisplay(CirclePacking& obj) :
 void PackingDisplay::recomputeShapes() {
 
     drawableShapes.clear();
-    computeCircles();
-    computeUnderlyingGraph();
 
+    computeCircles();
+    // computeUnderlyingGraph();
+    // computeIncircles();
 }
 
 void PackingDisplay::computeCircles() {
@@ -94,6 +95,48 @@ void PackingDisplay::computeUnderlyingGraph() {
 
     }
 }
+
+void PackingDisplay::computeIncircles() {
+
+    for (const Face* face : object->object->faces) {
+
+        if (face->isExterior) {
+            std::cout << "Exterior face inradius: ";
+            std::cout << face->inradius << std::endl;
+        }
+
+        double radius = face->inradius * scale;
+
+        double a = face->edge->length();
+        double b = face->edge->next->length();
+        double c = face->edge->next->next->length();
+
+        auto oa = face->edge->next->next->origin->position;
+        auto ob = face->edge->origin->position;
+        auto oc = face->edge->next->origin->position;
+
+        array<double, 2> center = {(a*oa[0] + b*ob[0] + c*oc[0]) / (a+b+c), 
+                                   (a*oa[1] + b*ob[1] + c*oc[1]) / (a+b+c)};
+        center = toWindowCoords(center);
+
+        sf::Vector2f position(
+            center[0]-radius, center[1]-radius
+        );
+
+        sf::CircleShape* drawableCircle = new sf::CircleShape(radius);
+
+        drawableCircle->setPosition(position);
+
+        drawableCircle->setOutlineThickness(1);
+        drawableCircle->setOutlineColor(sf::Color::Black);
+        drawableCircle->setFillColor(sf::Color::Transparent);
+
+        drawableShapes.push_back(unique_ptr<sf::Drawable>(drawableCircle));
+
+    }
+
+};
+
 
 void PackingDisplay::display() {
 

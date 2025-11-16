@@ -13,6 +13,11 @@ Face::Face(bool exterior) {
 
     isExterior = exterior;
 
+    if (isExterior) {
+
+        inradius = 1;
+    }
+
 }
 
 vector<Vertex*> Face::vertices() {

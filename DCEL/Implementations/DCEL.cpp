@@ -196,8 +196,6 @@ DCEL::DCEL(const PlanarEmbedding& g) {
 
 DCEL::~DCEL() {
 
-    std::cout << "DCEL DESTRUCTOR" << std::endl;
-
     for (Vertex* vertex : vertices) delete vertex;
     for (HalfEdge* edge : edges) delete edge;
     for (Face* face : faces) delete face;

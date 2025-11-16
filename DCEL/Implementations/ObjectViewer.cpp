@@ -24,22 +24,23 @@ ObjectViewer::ObjectViewer(DCEL& obj) :
 }
 
 void ObjectViewer::recomputeDisplayObjects() {
+
+    drawableShapes.clear();
+
     computeFaces();
     computeIncircles();
 }
 
 void ObjectViewer::computeFaces() {
 
-    faceShapes.clear();
-
     for (Face* face : object->faces) {
 
         if (! face->isExterior) {
 
-            sf::ConvexShape convex;
-            convex.setOutlineThickness(1);
-            convex.setOutlineColor(sf::Color::Black);
-            convex.setFillColor(sf::Color::Transparent);
+            sf::ConvexShape* convex = new sf::ConvexShape();
+            convex->setOutlineThickness(1);
+            convex->setOutlineColor(sf::Color::Black);
+            convex->setFillColor(sf::Color::Transparent);
 
             vector<array<double, 3>> points;
 
@@ -53,13 +54,13 @@ void ObjectViewer::computeFaces() {
 
             } while ( current != start );
 
-            convex.setPointCount(points.size());
+            convex->setPointCount(points.size());
 
             for (int i=0 ; i<points.size() ; i++) {
-                convex.setPoint(i, {points[i][0], points[i][1]});
+                convex->setPoint(i, {points[i][0], points[i][1]});
             }
 
-            faceShapes.push_back(convex);
+            drawableShapes.push_back(unique_ptr<sf::Drawable>(convex));
         }
 
     }
@@ -88,15 +89,15 @@ void ObjectViewer::computeIncircles() {
             center[0]-radius, center[1]-radius
         );
 
-        sf::CircleShape drawableCircle(radius);
+        sf::CircleShape* drawableCircle = new sf::CircleShape(radius);
 
-        drawableCircle.setPosition(position);
+        drawableCircle->setPosition(position);
 
-        drawableCircle.setOutlineThickness(1);
-        drawableCircle.setOutlineColor(sf::Color::Black);
-        drawableCircle.setFillColor(sf::Color::Transparent);
+        drawableCircle->setOutlineThickness(1);
+        drawableCircle->setOutlineColor(sf::Color::Black);
+        drawableCircle->setFillColor(sf::Color::Transparent);
 
-        incircles.push_back(drawableCircle);
+        drawableShapes.push_back(unique_ptr<sf::Drawable>(drawableCircle));
 
     }
 
@@ -135,29 +136,9 @@ void ObjectViewer::display() {
 
         window.clear(sf::Color::White);
 
-        for (const sf::ConvexShape& face : faceShapes) {
+        for (const auto& drawable : drawableShapes) {
 
-            window.draw(face);
-
-        }
-
-        // Debug "leaving" pointer
-        for (Vertex* vertex : object->exteriorVertices) {
-            auto u = toWindowCoords(vertex->position);
-            auto v = toWindowCoords(vertex->leaving->twin->origin->position);
-
-            sf::Vertex line[2];
-            line[0].position = sf::Vector2f(u[0], u[1]);
-            line[0].color  = sf::Color::Red;
-            line[1].position = sf::Vector2f(v[0], v[1]);
-            line[1].color = sf::Color::Blue;
-
-            window.draw(line, 2, sf::PrimitiveType::Lines);
-        }
-
-        for (const sf::CircleShape& incircle : incircles) {
-
-            window.draw(incircle);
+            window.draw(*drawable);
 
         }
 

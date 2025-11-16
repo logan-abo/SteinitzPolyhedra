@@ -3,9 +3,11 @@
 
 #include <vector>
 #include <array>
+#include <memory>
 
 using std::vector;
 using std::array;
+using std::unique_ptr;
 
 #include <SFML/Graphics.hpp>
 
@@ -31,8 +33,7 @@ class ObjectViewer {
         void triangulate(int x, int y);
 
         DCEL* object;
-        vector<sf::ConvexShape> faceShapes;
-        vector<sf::CircleShape> incircles;
+        vector<unique_ptr<sf::Drawable>> drawableShapes;
 
     public:
 

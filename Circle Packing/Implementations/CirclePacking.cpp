@@ -64,6 +64,9 @@ CirclePacking::CirclePacking(DCEL& dcel) {
     for (int i=0 ; i<100 ; i++) {
         approximationStep();
     }
+
+    // object->exteriorFace->inradius = 1;
+
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::cout << "Total Elapsed time: ";
     std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000.0;

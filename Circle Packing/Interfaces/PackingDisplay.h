@@ -29,6 +29,7 @@ class PackingDisplay {
         void recomputeShapes();
         void computeCircles();
         void computeUnderlyingGraph();
+        void computeIncircles();
 
         CirclePacking* object;
         vector<unique_ptr<sf::Drawable>> drawableShapes;
