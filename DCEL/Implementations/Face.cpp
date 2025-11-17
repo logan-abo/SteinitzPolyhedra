@@ -20,7 +20,7 @@ Face::Face(bool exterior) {
 
 }
 
-vector<Vertex*> Face::vertices() {
+vector<Vertex*> Face::vertices() const {
 
     vector<Vertex*> vertexList;
 
@@ -37,7 +37,7 @@ vector<Vertex*> Face::vertices() {
 
 }
 
-vector<HalfEdge*> Face::edges() {
+vector<HalfEdge*> Face::edges() const {
 
     vector<HalfEdge*> edgeList;
 
