@@ -27,6 +27,8 @@ class Face {
         
         array<double, 3> centroid() const;
 
+        array<double, 3> normal() const;
+
 };
 
 #endif

@@ -79,7 +79,7 @@ void ObjectViewer::computeFaces() {
 
     for (Face* face : object->faces) {
 
-        // if (! face->isExterior) {
+        if (face->normal()[2] > 0) {
 
             sf::ConvexShape* convex = new sf::ConvexShape();
             convex->setOutlineThickness(1);
@@ -106,7 +106,7 @@ void ObjectViewer::computeFaces() {
             }
 
             drawableShapes.push_back(unique_ptr<sf::Drawable>(convex));
-        // }
+        }
 
     }
 
