@@ -4,10 +4,10 @@
 #include "Graphs/Interfaces/SimpleGraph.h"
 #include "Graphs/Interfaces/PlanarEmbedding.h"
 
-#include "Circle Packing/Interfaces/Circle.h"
-#include "Circle Packing/Interfaces/CirclePacking.h"
-#include "Circle Packing/Interfaces/PackingDisplay.h"
-#include "Circle Packing/Interfaces/SteinitzPolyhedron.h"
+#include "CirclePacking/Interfaces/Circle.h"
+#include "CirclePacking/Interfaces/CirclePacking.h"
+#include "CirclePacking/Interfaces/PackingDisplay.h"
+#include "CirclePacking/Interfaces/SteinitzPolyhedron.h"
 
 #include <iostream>
 #include <vector>
