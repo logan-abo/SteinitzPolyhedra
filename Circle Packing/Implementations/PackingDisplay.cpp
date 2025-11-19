@@ -35,7 +35,7 @@ void PackingDisplay::recomputeShapes() {
     drawableShapes.clear();
 
     computeCircles();
-    // computeUnderlyingGraph();
+    computeUnderlyingGraph();
     // computeIncircles();
 }
 
@@ -139,6 +139,8 @@ void PackingDisplay::computeIncircles() {
 
 
 void PackingDisplay::display() {
+
+    recomputeShapes();
 
     sf::RenderWindow window(sf::VideoMode({width, height}), "Circle Packing");
 

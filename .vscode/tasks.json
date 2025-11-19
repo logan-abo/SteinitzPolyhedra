@@ -25,6 +25,7 @@
                 "Circle Packing/Implementations/Circle.cpp",
                 "Circle Packing/Implementations/CirclePacking.cpp",
                 "Circle Packing/Implementations/PackingDisplay.cpp",
+                "Circle Packing/Implementations/SteinitzPolyhedron.cpp",
 
                 //Include directories
                 "-IDCEL/Interfaces",

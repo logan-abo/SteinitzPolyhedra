@@ -39,7 +39,11 @@ class ObjectViewer {
 
         ObjectViewer(DCEL& obj);
 
+        void setScale(double newScale);
+
         void display();
+
+        bool rotating = false;
 
 };
 

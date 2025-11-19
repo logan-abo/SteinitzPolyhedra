@@ -15,6 +15,9 @@ class PlanarEmbedding;
 
 class DCEL {
 
+    private:
+
+
     public:
 
         DCEL(int numFaces);
@@ -32,11 +35,14 @@ class DCEL {
 
         int degree(Vertex* vertex);
         
-        void triangulate();
-        void triangulate(int faceIndex);
+        vector<Vertex*> triangulate();
+        Vertex* triangulate(int faceIndex);
         void triangulate(Face* face);
 
+        void deleteVertex(Vertex*);
         void addVertex(array<double, 3> coords);
+
+        void updateExteriorFace(Face* newFace);
 
 };
 

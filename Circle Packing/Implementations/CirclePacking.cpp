@@ -27,7 +27,7 @@ CirclePacking::CirclePacking(DCEL& dcel) {
 
     object = &dcel;
 
-    object->triangulate();
+    vector<Vertex*> addedVertices = object->triangulate();
 
     for (int i=0 ; i<0 ; i++) {
         vector<Face*> faces = object->faces;
@@ -61,7 +61,7 @@ CirclePacking::CirclePacking(DCEL& dcel) {
     std::cout << "Starting Packing..." << std::endl;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     // Full Approximation
-    for (int i=0 ; i<100 ; i++) {
+    for (int i=0 ; i<300 ; i++) {
         approximationStep();
     }
 
@@ -71,6 +71,10 @@ CirclePacking::CirclePacking(DCEL& dcel) {
     std::cout << "Total Elapsed time: ";
     std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000.0;
     std::cout << std::endl;
+
+    for (int i=addedVertices.size()-1 ; i>=0 ; i--) {
+        object->deleteVertex(addedVertices[i]);
+    }
 
     //THE ALGORITHM
     //STEP C:
@@ -377,6 +381,27 @@ void CirclePacking::placeInteriorCircles() {
         centers[i]->position[1] = Z0(i, 1);
     }
 }
+
+
+array<double, 3> CirclePacking::tangencyPoint(HalfEdge* edge) {
+
+    auto v1 = edge->origin->position;
+    auto v2 = edge->twin->origin->position;
+
+    // Unit length * radius of circle
+    auto scaleFactor = edge->origin->radius/edge->length();
+
+    // Vector between circle centers
+    array<double, 3> tangency = {v2[0]-v1[0], v2[1]-v1[1], v2[2]-v1[2]};
+
+    return {
+        v1[0] + tangency[0]*scaleFactor, 
+        v1[1] + tangency[1]*scaleFactor, 
+        v1[2] + tangency[2]*scaleFactor
+    };
+
+}
+
 
 //Original Visualizer for multi-circles around vertex (uncut sectors)
 // void CirclePacking::createInitialSectors() {

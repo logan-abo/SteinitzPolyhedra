@@ -65,6 +65,8 @@ class CirclePacking {
 
         vector<Vertex*> centers;
 
+        array<double, 3> tangencyPoint(HalfEdge* edge);
+
 };
 
 #endif
