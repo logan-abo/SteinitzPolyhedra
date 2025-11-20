@@ -1,23 +1,23 @@
-#ifndef GRAPH_H
-#define GRAPH_H
+// #ifndef GRAPH_H
+// #define GRAPH_H
 
-#include <vector>
-#include <cstddef>
+// #include <vector>
+// #include <cstddef>
 
-using std::vector;
+// using std::vector;
 
-class Graph {
+// class Graph {
 
-    private:
+//     private:
 
-    public:
+//     public:
 
-        virtual int order() const = 0;
-        virtual int size() const = 0;
+//         virtual int order() const = 0;
+//         virtual int size() const = 0;
 
-        virtual vector<int> neighbors(int v) const = 0;
-        virtual int degree(int v) const = 0;
+//         virtual vector<int> neighbors(int v) const = 0;
+//         virtual int degree(int v) const = 0;
 
-};
+// };
 
-#endif
+// #endif

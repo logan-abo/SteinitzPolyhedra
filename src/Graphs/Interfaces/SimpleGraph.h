@@ -1,7 +1,11 @@
+#include <vector>
+
+using std::vector;
 
 #include "Graph.h"
 
-class SimpleGraph : public Graph {
+
+class SimpleGraph {
 
     private:
     
@@ -11,10 +15,10 @@ class SimpleGraph : public Graph {
 
         SimpleGraph(const vector<vector<int>>& adjacency);
 
-        int order() const override;
-        int size() const override;
+        int order() const;
+        int size() const;
 
-        vector<int> neighbors(int v) const override;
-        int degree(int v) const override;
+        vector<int> neighbors(int v) const;
+        int degree(int v) const;
 
 };

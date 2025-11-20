@@ -83,23 +83,23 @@ int main() {
 
 
     // Create Planar Embedding
-    // PlanarEmbedding planar(g, vertices);
-    PlanarEmbedding planar(herschel, enneahedron);
+    PlanarEmbedding planar(g, vertices);
+    // PlanarEmbedding planar(herschel, enneahedron);
     // Create DCEL Structure of plane graph
     DCEL embed(planar); 
 
     // Choose a different exterior face for Herschels Enneahedron
-    double minX = 100;
-    Vertex* newExteriorVertex;
-    for (Vertex* vertex : embed.exteriorVertices) {
+    // double minX = 100;
+    // Vertex* newExteriorVertex;
+    // for (Vertex* vertex : embed.exteriorVertices) {
 
-        if (vertex->position[0] < minX) {
+    //     if (vertex->position[0] < minX) {
 
-            minX = vertex->position[0];
-            newExteriorVertex = vertex;
-        }
-    }
-    embed.updateExteriorFace(newExteriorVertex->leaving->twin->face);
+    //         minX = vertex->position[0];
+    //         newExteriorVertex = vertex;
+    //     }
+    // }
+    // embed.updateExteriorFace(newExteriorVertex->leaving->twin->face);
 
     // Graph GUI for modification
     ObjectViewer viewWindow(embed);

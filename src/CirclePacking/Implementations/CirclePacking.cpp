@@ -75,6 +75,8 @@ CirclePacking::CirclePacking(DCEL& dcel) {
     for (int i=addedVertices.size()-1 ; i>=0 ; i--) {
         object->deleteVertex(addedVertices[i]);
     }
+    std::cout << "Size of vertices: ";
+    std::cout << object->vertices.size() << std::endl;
 
     //THE ALGORITHM
     //STEP C:

@@ -62,6 +62,8 @@ void PackingDisplay::computeCircles() {
 
         drawableShapes.push_back(unique_ptr<sf::Drawable>(drawableCircle));
     }
+    std::cout << "Size of centers: ";
+    std::cout << object->centers.size() << std::endl;
 }
 
 void PackingDisplay::computeUnderlyingGraph() {
@@ -146,9 +148,10 @@ void PackingDisplay::display() {
 
     while (window.isOpen()) {
 
-        while (const std::optional event = window.pollEvent()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
 
-            if (event->is<sf::Event::Closed>()) {
+            if (event.type == sf::Event::Closed) {
                 window.close();
             }
         }

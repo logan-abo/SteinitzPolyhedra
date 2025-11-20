@@ -158,13 +158,14 @@ void ObjectViewer::display() {
 
     while (window.isOpen()) {
 
-        while (const std::optional event = window.pollEvent()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
 
-            if (event->is<sf::Event::Closed>()) {
+            if (event.type == sf::Event::Closed) {
                 window.close();
             }
 
-            if (event->is<sf::Event::MouseButtonPressed>()) {
+            if (event.type == sf::Event::MouseButtonPressed) {
 
                 int mouseX = sf::Mouse::getPosition(window).x;
                 int mouseY = sf::Mouse::getPosition(window).y;
