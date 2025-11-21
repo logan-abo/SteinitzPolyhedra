@@ -3,3 +3,4 @@
 # Ignore a specific folder
 bin/
 obj/
+.vscode/
