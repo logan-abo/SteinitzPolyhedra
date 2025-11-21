@@ -25,7 +25,6 @@
                 "src/CirclePacking/Implementations/Circle.cpp",
                 "src/CirclePacking/Implementations/CirclePacking.cpp",
                 "src/CirclePacking/Implementations/PackingDisplay.cpp",
-                "src/CirclePacking/Implementations/SteinitzPolyhedron.cpp",
 
                 //Include directories
                 "-Isrc/DCEL/Interfaces",

@@ -7,7 +7,6 @@
 #include "CirclePacking/Interfaces/Circle.h"
 #include "CirclePacking/Interfaces/CirclePacking.h"
 #include "CirclePacking/Interfaces/PackingDisplay.h"
-#include "CirclePacking/Interfaces/SteinitzPolyhedron.h"
 
 #include <iostream>
 #include <vector>
