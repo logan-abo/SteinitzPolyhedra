@@ -11,25 +11,25 @@
                 "-g",
 
                 //Source files
-                "main_test.cpp",
+                "src/main_test.cpp",
 
-                "DCEL/Implementations/DCEL.cpp",
-                "DCEL/Implementations/Vertex.cpp",
-                "DCEL/Implementations/HalfEdge.cpp",
-                "DCEL/Implementations/Face.cpp",
-                "DCEL/Implementations/ObjectViewer.cpp",
+                "src/DCEL/Implementations/DCEL.cpp",
+                "src/DCEL/Implementations/Vertex.cpp",
+                "src/DCEL/Implementations/HalfEdge.cpp",
+                "src/DCEL/Implementations/Face.cpp",
+                "src/DCEL/Implementations/ObjectViewer.cpp",
 
-                "Graphs/Implementations/SimpleGraph.cpp",
-                "Graphs/Implementations/PlanarEmbedding.cpp",
+                "src/Graphs/Implementations/SimpleGraph.cpp",
+                "src/Graphs/Implementations/PlanarEmbedding.cpp",
 
-                "Circle Packing/Implementations/Circle.cpp",
-                "Circle Packing/Implementations/CirclePacking.cpp",
-                "Circle Packing/Implementations/PackingDisplay.cpp",
+                "src/CirclePacking/Implementations/Circle.cpp",
+                "src/CirclePacking/Implementations/CirclePacking.cpp",
+                "src/CirclePacking/Implementations/PackingDisplay.cpp",
 
                 //Include directories
-                "-IDCEL/Interfaces",
-                "-IGraphs/Interfaces",
-                "-ICircle\\ Packing/Interfaces",
+                "-Isrc/DCEL/Interfaces",
+                "-Isrc/Graphs/Interfaces",
+                "-Isrc/CirclePacking/Interfaces",
                 "-IC:/SFML/SFML-3.0.2/include",
                 "-IC:/eigen-5.0.0",
 
