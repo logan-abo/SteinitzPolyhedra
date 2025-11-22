@@ -114,7 +114,7 @@ void CirclePacking::sortVertices() {
     for (Vertex* vertex : interiorVertices) {
         vertices.push_back(vertex);
     }
-    for (Vertex* vertex : exteriorVertices) {
+    for (Vertex* vertex : exteriorFace->vertices()) {
         vertices.push_back(vertex);
     }
 
