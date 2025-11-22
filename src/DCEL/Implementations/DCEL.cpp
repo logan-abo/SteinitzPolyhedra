@@ -17,6 +17,24 @@ using std::map;
 using std::array;
 
 
+Vertex* DCEL::createVertex(array<double, 3> coords) {
+
+    // Call Vertex Factory
+    Vertex* newVertex = allocateVertex(coords);
+
+    // Add to memory tracking
+    vertices.push_back(newVertex);
+
+    return newVertex;
+}
+
+Vertex* DCEL::allocateVertex(array<double, 3> coords) {
+
+    return new Vertex(coords);
+
+}
+
+
 double distanceBetween(const Vertex* v, const Vertex* u) {
 
     double dx = v->position[0] - u->position[0];
@@ -28,6 +46,7 @@ double distanceBetween(const Vertex* v, const Vertex* u) {
 }
 
 
+// DEPRECATED METHOD. NO LONGER SERVES A PURPOSE
 //Create n-gon on the unit circle
 DCEL::DCEL(int n) {
 
@@ -95,7 +114,8 @@ DCEL::DCEL(const PlanarEmbedding& g) {
 
     //create all vertices, keep track of leftMost
     for (int u=0 ; u<g.order() ; u++) {
-        vertices.push_back(new Vertex(g.vertex(u)));
+
+        createVertex(g.vertex(u));
         
         if (vertices[u]->position[0] < leftMostVertex.second) {
             leftMostVertex.first = u; 
@@ -224,8 +244,7 @@ void DCEL::triangulate(int faceIndex) {
 
     Face* oldFace = faces[faceIndex];
 
-    Vertex* newVertex = new Vertex(oldFace->centroid());
-    vertices.push_back(newVertex);
+    Vertex* newVertex = createVertex(oldFace->centroid());
 
     HalfEdge* start = oldFace->edge;
     HalfEdge* current = start;
@@ -292,8 +311,7 @@ void DCEL::triangulate(Face* oldFace) {
 void DCEL::addVertex(array<double, 3> coords) {
 
     // Create new Vertex (u)
-    Vertex* newVertex = new Vertex(coords);
-    vertices.push_back(newVertex);
+    Vertex* newVertex = createVertex(coords);
 
 
     // Find closest interior vertex (v)

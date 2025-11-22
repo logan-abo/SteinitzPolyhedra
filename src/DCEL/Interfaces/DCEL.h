@@ -15,6 +15,14 @@ class PlanarEmbedding;
 
 class DCEL {
 
+    private:
+
+        // Calls Vertex factory and adds new factory to memory tracking
+        Vertex* createVertex(array<double, 3> coords);
+
+        virtual Vertex* allocateVertex(array<double, 3> coords);
+
+
     public:
 
         DCEL(int numFaces);
