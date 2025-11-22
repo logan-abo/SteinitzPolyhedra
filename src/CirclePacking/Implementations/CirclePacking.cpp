@@ -2,7 +2,7 @@
 
 #include "../../Graphs/Interfaces/PlanarEmbedding.h"
 #include "../Interfaces/CirclePacking.h"
-#include "../Interfaces/Circle.h"
+#include "../Interfaces/CircleVertex.h"
 #include "../../DCEL/Interfaces/DCEL.h"
 
 #include <Eigen/Dense>

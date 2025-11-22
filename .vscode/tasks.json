@@ -22,7 +22,7 @@
                 "src/Graphs/Implementations/SimpleGraph.cpp",
                 "src/Graphs/Implementations/PlanarEmbedding.cpp",
 
-                "src/CirclePacking/Implementations/Circle.cpp",
+                "src/CirclePacking/Implementations/CircleVertex.cpp",
                 "src/CirclePacking/Implementations/CirclePacking.cpp",
                 "src/CirclePacking/Implementations/PackingDisplay.cpp",
 

@@ -12,7 +12,7 @@
 #include "../../DCEL/Interfaces/DCEL.h"
 #include "../Interfaces/PackingDisplay.h"
 #include "../Interfaces/CirclePacking.h"
-#include "../Interfaces/Circle.h"
+#include "../Interfaces/CircleVertex.h"
 
 using std::vector;
 using std::array;

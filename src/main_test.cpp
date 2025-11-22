@@ -4,7 +4,6 @@
 #include "Graphs/Interfaces/SimpleGraph.h"
 #include "Graphs/Interfaces/PlanarEmbedding.h"
 
-#include "CirclePacking/Interfaces/Circle.h"
 #include "CirclePacking/Interfaces/CirclePacking.h"
 #include "CirclePacking/Interfaces/PackingDisplay.h"
 
