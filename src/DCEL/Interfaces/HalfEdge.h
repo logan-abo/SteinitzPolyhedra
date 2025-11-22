@@ -8,19 +8,22 @@ class HalfEdge {
 
     public:
 
-        HalfEdge();
         HalfEdge(Vertex* org);
 
-        Vertex* origin = 0;
+        Vertex* origin = nullptr;
 
-        HalfEdge* twin = 0;
-        HalfEdge* next = 0;
+        HalfEdge* twin = nullptr;
+        HalfEdge* next = nullptr;
 
-        Face* face = 0;
+        Face* face = nullptr;
 
         double length();
         double angleWith(HalfEdge* edge);
 
+
+
+        // DEPRECATED CONSTRUCTOR
+        HalfEdge();
 };
 
 double slope(Vertex* v1, Vertex* v2);

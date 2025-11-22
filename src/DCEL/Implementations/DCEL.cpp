@@ -1,7 +1,9 @@
 #define _USE_MATH_DEFINES
 
 #include "../Interfaces/DCEL.h"
+#include "../Interfaces/Vertex.h"
 #include "../Interfaces/HalfEdge.h"
+#include "../Interfaces/Face.h"
 #include "../../Graphs/Interfaces/PlanarEmbedding.h"
 
 #include <vector>
@@ -17,7 +19,7 @@ using std::map;
 using std::array;
 
 
-Vertex* DCEL::createVertex(array<double, 3> coords) {
+Vertex* DCEL::new_vertex(array<double, 3> coords) {
 
     // Call Vertex Factory
     Vertex* newVertex = allocateVertex(coords);
@@ -28,10 +30,27 @@ Vertex* DCEL::createVertex(array<double, 3> coords) {
     return newVertex;
 }
 
+HalfEdge* DCEL::new_halfEdge(Vertex* vertex) {
+
+    // Call HalfEdge Factory
+    HalfEdge* newHalfEdge = allocateHalfEdge(vertex);
+
+    // Add to memory tracking
+    edges.push_back(newHalfEdge);
+
+    return newHalfEdge;
+
+}
+
+
 Vertex* DCEL::allocateVertex(array<double, 3> coords) {
 
     return new Vertex(coords);
+}
 
+HalfEdge* DCEL::allocateHalfEdge(Vertex* vertex) {
+
+    return new HalfEdge(vertex);
 }
 
 
@@ -107,15 +126,25 @@ DCEL::DCEL(int n) {
 
 }
 
+
+//
+DCEL::DCEL() {}
+
 // Create DCEL from planar embedding
 DCEL::DCEL(const PlanarEmbedding& g) {
+
+    buildFromEmbedding(g);
+
+}
+
+void DCEL::buildFromEmbedding(const PlanarEmbedding& g) {
 
     std::pair<int, double> leftMostVertex = {-1, std::numeric_limits<double>::max()};
 
     //create all vertices, keep track of leftMost
     for (int u=0 ; u<g.order() ; u++) {
 
-        createVertex(g.vertex(u));
+        new_vertex(g.vertex(u));
         
         if (vertices[u]->position[0] < leftMostVertex.second) {
             leftMostVertex.first = u; 
@@ -131,10 +160,7 @@ DCEL::DCEL(const PlanarEmbedding& g) {
 
         for (int v=0 ; v<g.degree(u) ; v++) {
 
-            HalfEdge* edge = new HalfEdge;
-            edge->origin = vertices[u];
-
-            edges.push_back(edge);
+            HalfEdge* edge = new_halfEdge(vertices[u]);
 
             edgeMap[std::make_pair(u, g.neighbors(u)[v])] = edge;
 
@@ -202,6 +228,7 @@ DCEL::DCEL(const PlanarEmbedding& g) {
 
 }
 
+
 // Possible different algorithm for DCEL constructor (see picture of whiteboard)
 // DCEL::DCEL(const PlanarEmbedding& g) {
 //
@@ -244,7 +271,7 @@ void DCEL::triangulate(int faceIndex) {
 
     Face* oldFace = faces[faceIndex];
 
-    Vertex* newVertex = createVertex(oldFace->centroid());
+    Vertex* newVertex = new_vertex(oldFace->centroid());
 
     HalfEdge* start = oldFace->edge;
     HalfEdge* current = start;
@@ -262,11 +289,9 @@ void DCEL::triangulate(int faceIndex) {
         Face* newFace = new Face;
         newFace->edge = edge;
 
-        HalfEdge* newEdge = new HalfEdge;
-        newEdge->origin = edge->twin->origin;
+        HalfEdge* newEdge = new_halfEdge(edge->twin->origin);
 
-        HalfEdge* nextEdge = new HalfEdge;
-        nextEdge->origin = newVertex;
+        HalfEdge* nextEdge = new_halfEdge(newVertex);
 
         newEdge->next = nextEdge;
         nextEdge->next = edge;
@@ -277,8 +302,6 @@ void DCEL::triangulate(int faceIndex) {
         edge->face = newFace;
 
         faces.push_back(newFace);
-        edges.push_back(nextEdge);
-        edges.push_back(newEdge);
 
         numNewFaces++;
 
@@ -311,7 +334,7 @@ void DCEL::triangulate(Face* oldFace) {
 void DCEL::addVertex(array<double, 3> coords) {
 
     // Create new Vertex (u)
-    Vertex* newVertex = createVertex(coords);
+    Vertex* newVertex = new_vertex(coords);
 
 
     // Find closest interior vertex (v)
@@ -351,21 +374,13 @@ void DCEL::addVertex(array<double, 3> coords) {
     //
     vm_previous = vm_previous->twin;
     //
-    HalfEdge* v_u = new HalfEdge(closestExterior);
-    HalfEdge* u_v = new HalfEdge(newVertex);
-    HalfEdge* u_vp = new HalfEdge(newVertex);
-    HalfEdge* vp_u = new HalfEdge(closestExterior->leaving->twin->origin);
+    HalfEdge* v_u = new_halfEdge(closestExterior);
+    HalfEdge* u_v = new_halfEdge(newVertex);
+    HalfEdge* u_vp = new_halfEdge(newVertex);
+    HalfEdge* vp_u = new_halfEdge(closestExterior->leaving->twin->origin);
     //
-    edges.push_back(v_u);
-    edges.push_back(u_v);
-    edges.push_back(u_vp);
-    edges.push_back(vp_u);
-    //
-    HalfEdge* vm_u = new HalfEdge(vm_v->origin);
-    HalfEdge* u_vm = new HalfEdge(newVertex);
-    //
-    edges.push_back(vm_u);
-    edges.push_back(u_vm);
+    HalfEdge* vm_u = new_halfEdge(vm_v->origin);
+    HalfEdge* u_vm = new_halfEdge(newVertex);
 
     // Track previous vertex in exterior (vm)
     Vertex* previousExterior = vm_v->origin;

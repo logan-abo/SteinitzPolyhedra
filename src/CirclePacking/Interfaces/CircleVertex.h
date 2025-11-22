@@ -9,7 +9,7 @@
 using std::vector;
 using std::array;
 
-class CircleVertex : Vertex {
+class CircleVertex : public Vertex {
 
     private:
 
@@ -23,7 +23,7 @@ class CircleVertex : Vertex {
         ~CircleVertex();
 
 
-        double radius = 0.5;
+        double radius;
         double getRadius() const;
         
         void scale(double scalar) override;

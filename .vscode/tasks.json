@@ -23,6 +23,7 @@
                 "src/Graphs/Implementations/PlanarEmbedding.cpp",
 
                 "src/CirclePacking/Implementations/CircleVertex.cpp",
+                "src/CirclePacking/Implementations/ConductanceEdge.cpp",
                 "src/CirclePacking/Implementations/CirclePacking.cpp",
                 "src/CirclePacking/Implementations/PackingDisplay.cpp",
 

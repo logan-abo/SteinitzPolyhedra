@@ -11,6 +11,8 @@ using std::array;
 
 Face::Face(bool exterior) {
 
+    inradius = 0;
+
     isExterior = exterior;
 
 }

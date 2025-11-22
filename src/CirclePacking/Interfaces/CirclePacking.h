@@ -1,6 +1,8 @@
 #ifndef CIRCLEPACKING_H
 #define CIRCLEPACKING_H
 
+#include "../../DCEL/Interfaces/DCEL.h"
+
 #include <vector>
 #include <array>
 #include <unordered_map>
@@ -12,24 +14,36 @@ using std::vector;
 using std::array;
 using std::unordered_map;
 
-class Circle;
+class CircleVertex;
+class ConductanceEdge;
 class PlanarEmbedding;
 class DCEL;
 class HalfEdge;
 class Vertex;
 
-class CirclePacking {
+class CirclePacking : public DCEL {
 
     private:
 
         PlanarEmbedding* embedding;
-        vector<vector<double>> edgeConductance;
 
-        unordered_map<Vertex*, int> vertexLookup;
+        // Vertices need to be sorted interior first, then exterior
+        void sortVertices();
 
-        void createAdjacencyMatrix();
+        // To avoid mass templating
+        CircleVertex* cast(Vertex* vertex) const;
+        ConductanceEdge* cast(HalfEdge* edge) const;
 
-        //Step B
+        // Override Factory methods
+        Vertex* allocateVertex(array<double, 3> coords) override;
+        HalfEdge* allocateHalfEdge(Vertex* vertex) override;
+
+        int interiorVertexCount;
+
+        // This should exist but returns to issue of desync with DCEL structure
+        // unordered_map<Vertex*, int> vertexLookup;
+
+        //Step C
         void computeEffectiveRadii(); //DONE
         double sectorRadius(HalfEdge* counterClockwiseMostEdge) const; //DONE
 
@@ -39,12 +53,11 @@ class CirclePacking {
         double estimateBoundingRadius() const; //DONE
         double sumExteriorOverRho(double rho) const; //DONE
 
-        //Step C
+        //Step B
         void placeInteriorCircles();
         void computeInradii(); //DONE
         void computeEdgeConductance(); //DONE
-        Eigen::MatrixXd interiorTransitionProbabilities() const;
-        Eigen::MatrixXd exteriorTransitionProbabilities() const;
+        Eigen::MatrixXd transitionProbabilities() const;
 
 
         //Do one full iteration of packing approximation algorithm
@@ -53,17 +66,15 @@ class CirclePacking {
             placeInteriorCircles();
             computeEffectiveRadii();
         }
-        
 
-        int interiorVertexCount;
 
     public: 
 
-        CirclePacking(DCEL& planeGraph);
-        
-        DCEL* object;
+        CirclePacking(const PlanarEmbedding& graph);
 
-        vector<Vertex*> centers;
+        double getRadius(Vertex* vertex) const;
+
+        void pack();
 
 };
 

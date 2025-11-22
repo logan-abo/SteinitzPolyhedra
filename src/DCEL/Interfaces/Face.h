@@ -13,11 +13,12 @@ class HalfEdge;
 class Face {
 
     public:
+
         Face(bool exterior=false);
 
         bool isExterior;
 
-        HalfEdge* edge = 0;
+        HalfEdge* edge = nullptr;
         double inradius = 0;
 
         int numSides();

@@ -9,6 +9,7 @@
 #include "../../Graphs/Interfaces/PlanarEmbedding.h"
 #include "../../DCEL/Interfaces/Vertex.h"
 #include "../../DCEL/Interfaces/HalfEdge.h"
+#include "../../DCEL/Interfaces/Face.h"
 #include "../../DCEL/Interfaces/DCEL.h"
 #include "../Interfaces/PackingDisplay.h"
 #include "../Interfaces/CirclePacking.h"
@@ -33,11 +34,11 @@ void PackingDisplay::computeShapes() {
 
     circleShapes.clear();
 
-    for (int i=0 ; i<object->centers.size() ; i++) {
+    for (Vertex* vertex : object->vertices) {
 
-        double radius = object->centers[i]->radius * scale;
-        array<double, 2> center = toWindowCoords({object->centers[i]->position[0],
-                                                  object->centers[i]->position[1]});
+        double radius = object->getRadius(vertex) * scale;
+        array<double, 2> center = toWindowCoords({vertex->position[0],
+                                                  vertex->position[1]});
 
         // FLIP ACROSS Y=X
         sf::Vector2f position(
@@ -82,7 +83,7 @@ void PackingDisplay::display() {
         }
 
         //Display underlying graph of circle centers
-        for (Face* face : object->object->faces) {
+        for (Face* face : object->faces) {
 
             HalfEdge* start = face->edge;
             HalfEdge* current = start;
@@ -113,7 +114,7 @@ void PackingDisplay::display() {
         }
 
         //Display Incircles
-        // for (const Face* face : object->object->faces) {
+        // for (const Face* face : object->faces) {
 
         //     double radius = face->inradius * scale;
 

@@ -6,8 +6,10 @@
 #include <SFML/Graphics.hpp>
 
 #include "../Interfaces/ObjectViewer.h"
-#include "../Interfaces/DCEL.h"
+#include "../Interfaces/Vertex.h"
+#include "../Interfaces/HalfEdge.h"
 #include "../Interfaces/Face.h"
+#include "../Interfaces/DCEL.h"
 
 using std::vector;
 using std::array;
