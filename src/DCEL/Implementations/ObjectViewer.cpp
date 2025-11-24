@@ -27,7 +27,6 @@ ObjectViewer::ObjectViewer(DCEL& obj) :
 
 void ObjectViewer::recomputeDisplayObjects() {
     computeFaces();
-    std::cout << "computed" << std::endl;
     computeIncircles();
 }
 
@@ -142,20 +141,6 @@ void ObjectViewer::display() {
 
             window.draw(face);
 
-        }
-
-        // Debug "leaving" pointer
-        for (Vertex* vertex : object->exteriorVertices) {
-            auto u = toWindowCoords(vertex->position);
-            auto v = toWindowCoords(vertex->leaving->twin->origin->position);
-
-            sf::Vertex line[2];
-            line[0].position = sf::Vector2f(u[0], u[1]);
-            line[0].color  = sf::Color::Red;
-            line[1].position = sf::Vector2f(v[0], v[1]);
-            line[1].color = sf::Color::Blue;
-
-            window.draw(line, 2, sf::PrimitiveType::Lines);
         }
 
         for (const sf::CircleShape& incircle : incircles) {

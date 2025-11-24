@@ -356,14 +356,12 @@ void DCEL::addVertex(array<double, 3> coords) {
     HalfEdge* v_vm = closestExterior->leaving;
     do {
         v_vm = v_vm->twin->next;
-        std::cout << "Looping" << std::endl;
     }
     while (exteriorVertices.count(v_vm->twin->origin) == 0);
 
     HalfEdge* vm_previous = v_vm->twin;
     do {
         vm_previous = vm_previous->twin->next;
-        std::cout << "Looping" << std::endl;
     }
     while (exteriorVertices.count(vm_previous->twin->origin) == 0);
 
@@ -446,8 +444,6 @@ void DCEL::addVertex(array<double, 3> coords) {
     // New vertex is in the exterior
     exteriorVertices.insert(newVertex);
     exteriorVertices.erase(closestExterior);
-
-    std::cout << "BUILT" << std::endl;
 
 }
 

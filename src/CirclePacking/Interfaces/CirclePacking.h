@@ -27,12 +27,12 @@ class CirclePacking : public DCEL {
 
         PlanarEmbedding* embedding;
 
-        // Vertices need to be sorted interior first, then exterior
         void sortVertices();
 
         // To avoid mass templating
         CircleVertex* cast(Vertex* vertex) const;
         ConductanceEdge* cast(HalfEdge* edge) const;
+        void setRadius(Vertex* vertex, double radius);
 
         // Override Factory methods
         Vertex* allocateVertex(array<double, 3> coords) override;
@@ -42,6 +42,7 @@ class CirclePacking : public DCEL {
 
         // This should exist but returns to issue of desync with DCEL structure
         // unordered_map<Vertex*, int> vertexLookup;
+        // This lookup should be created when pack() is called
 
         //Step C
         void computeEffectiveRadii(); //DONE
@@ -58,14 +59,6 @@ class CirclePacking : public DCEL {
         void computeInradii(); //DONE
         void computeEdgeConductance(); //DONE
         Eigen::MatrixXd transitionProbabilities() const;
-
-
-        //Do one full iteration of packing approximation algorithm
-        void approximationStep() {
-            placeExteriorCircles();
-            placeInteriorCircles();
-            computeEffectiveRadii();
-        }
 
 
     public: 

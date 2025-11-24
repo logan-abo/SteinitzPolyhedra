@@ -51,48 +51,62 @@ HalfEdge* CirclePacking::allocateHalfEdge(Vertex* vertex) {
 
 CirclePacking::CirclePacking(const PlanarEmbedding& planeGraph) {
 
-    // Effectively call the parent DCEL constructor
+    // Effectively call the parent DCEL constructor. This is necessary
+    // to call the specific factory methods which will not work in the DCEL
+    // default constructor. 
     buildFromEmbedding(planeGraph);
+
+    // pack();
+    
+}
+
+//THE ALGORITHM
+//STEP A: Place the Exterior Circles
+//  Estimate solution to MONOTONIC angle sum condition (start above zero, increase)
+//      place first exterior vertex circle on x-axis
+//      use estimated external radius to calculate location of next exterior circle
+//      place all exterior circles succeessively
+//  Rescale all circles to be within unit circle 
+//
+//STEP B: Place the Interior Circles
+//  Calculate radius of incircles for each face
+//  Calculate edge conductance using inradii
+//  Calculate node conductance (sum of incident edge conductance)
+//  Create Transition probability matrix
+//  Solve matrix system for centers of interior vertices
+//
+//STEP C: Resize Circle Sizes Based on New Placements
+//  Calculate angles of sectors for every vertex
+//      Calculate aim ofevery vertex (2PI if interior, sum of sector angles if exterior)
+//      Use this to calculate effective radius of every vertex
+void CirclePacking::pack() {
 
     // Packing algorithm requires a somewhat (ignore exterior face) maximal planar graph
     triangulate();
 
+    // The step involving solving the linear system relies on the vertices being in order:
+    // Interior vertices first (any order) then exterior vertices, added counterclockwise
     sortVertices();
 
     std::cout << "Starting Packing..." << std::endl;
-    std::cout << std::endl;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     // Full Approximation
+    // The paper describes stopping after a certain visual threshold has been met instead 
+    // of a set number of iterations. 
     for (int i=0 ; i<75 ; i++) {
-        approximationStep();
+
+        placeExteriorCircles();
+        placeInteriorCircles();
+        computeEffectiveRadii();
     }
 
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::cout << std::endl;
     std::cout << "Total Elapsed time: ";
-    std::cout << std::chrono::duration_cast<std::chrono::minutes>(end - begin).count();
-    std::cout << std::endl;
-
-    //THE ALGORITHM
-    //STEP C:
-    //  Calculate angles of sectors for every vertex
-    //      Calculate aim ofevery vertex (2PI if interior, sum of sector angles if exterior)
-    //      Use this to calculate effective radius of every vertex
-    //STEP A:
-    //  Estimate solution to MONOTONIC angle sum condition (start above zero, increase)
-    //      place first exterior vertex circle on x-axis
-    //      use estimated external radius to calculate location of next exterior circle
-    //      place all exterior circles succeessively
-    //  Rescale all circles to be within unit circle 
-    //STEP B: the magic
-    //  Calculate radius of incircles for each face
-    //  Calculate edge conductance using inradii
-    //  Calculate node conductance (sum of incident edge conductance)
-    //  Create Transition probability matrix
-    //The crucial step: solve matrix system for centers of interior vertices
-    
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()/1000.0;
+    std::cout << " seconds" << std::endl;
 }
+
 
 // Circle Packing alogirthm requires that the exterior vertices are last
 // and in counter-clockwise order.
@@ -155,7 +169,7 @@ void CirclePacking::computeEffectiveRadii() {
         }
         while (current != start);
 
-        cast(vertices[i])->radius = sqrt(areaSum / (2*M_PI));
+        setRadius(vertices[i], sqrt(areaSum / (2*M_PI)));
 
     }
 
@@ -183,7 +197,7 @@ void CirclePacking::computeEffectiveRadii() {
 
         }
 
-        cast(vertices[i])->radius = sqrt(areaSum / aim);
+        setRadius(vertices[i], sqrt(areaSum / aim));
     }
 
 }
@@ -210,7 +224,7 @@ void CirclePacking::placeExteriorCircles() {
 
     //Place the first exterior circle
     vertices[interiorVertexCount]->relocate({
-        rho - cast(vertices[interiorVertexCount])->radius,
+        rho - getRadius(vertices[interiorVertexCount]),
         0,
         vertices[interiorVertexCount]->position[2]
     });
@@ -219,9 +233,9 @@ void CirclePacking::placeExteriorCircles() {
 
     for (int i=interiorVertexCount+1 ; i<vertices.size() ; i++) {
 
-        double radius = rho - cast(vertices[i])->radius;
+        double radius = rho - getRadius(vertices[i]);
         cummulativeAngle += std::acos(1 - 
-            (2 * cast(vertices[i-1])->radius * cast(vertices[i])->radius) / (radius * (rho - cast(vertices[i-1])->radius)));
+            (2 * getRadius(vertices[i-1]) * getRadius(vertices[i])) / (radius * (rho - getRadius(vertices[i-1]))));
 
         vertices[i]->relocate({
             radius*std::cos(cummulativeAngle),
@@ -241,7 +255,7 @@ double CirclePacking::estimateBoundingRadius() const {
 
     double upper = std::accumulate(vertices.begin()+interiorVertexCount, vertices.end(), 0.0,
         [this](double s, Vertex* v) {
-            return s + cast(v)->radius;
+            return s + getRadius(v);
         });
     double lower = 0;
     // double lower = *std::max_element(radii.begin() + interiorVertexCount,
@@ -275,14 +289,14 @@ double CirclePacking::sumExteriorOverRho(double rho) const {
     for (int i=interiorVertexCount ; i<vertices.size()-1 ; i++) {
 
         sum += std::acos(1 - 
-            (2 * cast(vertices[i])->radius * cast(vertices[i+1])->radius) / 
-            ((rho - cast(vertices[i])->radius) * (rho - cast(vertices[i+1])->radius)));
+            (2 * getRadius(vertices[i]) * getRadius(vertices[i+1])) / 
+            ((rho - getRadius(vertices[i])) * (rho - getRadius(vertices[i+1]))));
 
     }
 
     return sum + std::acos(1 - 
-        (2 * cast(vertices[vertices.size()-1])->radius * cast(vertices[interiorVertexCount])->radius) / 
-        ((rho - cast(vertices[vertices.size()-1])->radius) * (rho - cast(vertices[interiorVertexCount])->radius)));
+        (2 * getRadius(vertices[vertices.size()-1]) * getRadius(vertices[interiorVertexCount])) / 
+        ((rho - getRadius(vertices[vertices.size()-1])) * (rho - getRadius(vertices[interiorVertexCount]))));
 
 }
 //
@@ -299,25 +313,22 @@ void CirclePacking::scaleToUnitDisc(double boundingRadius) {
 }
 
 
-
-
-
 //STEP B: the magic
 //  Calculate radius of incircles for each face
 //  Calculate edge conductance using inradii
 //  Calculate node conductance (sum of incident edge conductance)
 //  Create Transition probability matrix
 //The crucial step: solve matrix system for centers of interior vertices
-
+//
 // Only deals with effective radius to compute an inradius of the given circle triples
 void CirclePacking::computeInradii() {
 
     for (Face* face : faces) {
         if (! face->isExterior) {
 
-            double ra = cast(face->edge->origin)->radius;
-            double rb = cast(face->edge->next->origin)->radius;
-            double rc = cast(face->edge->next->next->origin)->radius;
+            double ra = getRadius(face->edge->origin);
+            double rb = getRadius(face->edge->next->origin);
+            double rc = getRadius(face->edge->next->next->origin);
 
             face->inradius = sqrt( (ra*rb*rc) / (ra+rb+rc) );
 
@@ -351,7 +362,7 @@ void CirclePacking::computeEdgeConductance() {
         if (!edge->twin->origin) { std::cerr << "Twin has no Origin!" << std::endl; continue; }
 
         double conductance = (edge->face->inradius + edge->twin->face->inradius) /
-                             (cast(edge->origin)->radius + cast(edge->twin->origin)->radius);
+                             (getRadius(edge->origin) + getRadius(edge->twin->origin));
 
         cast(edge)->conductance = conductance;
 
@@ -425,6 +436,12 @@ void CirclePacking::placeInteriorCircles() {
     }
 }
 
+
+void CirclePacking::setRadius(Vertex* vertex, double rad) {
+
+    cast(vertex)->radius = rad;
+
+}
 
 double CirclePacking::getRadius(Vertex* vertex) const {
     return cast(vertex)->radius;
