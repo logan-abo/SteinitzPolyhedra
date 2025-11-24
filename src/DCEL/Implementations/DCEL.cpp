@@ -1,7 +1,9 @@
 #define _USE_MATH_DEFINES
 
 #include "../Interfaces/DCEL.h"
+#include "../Interfaces/Vertex.h"
 #include "../Interfaces/HalfEdge.h"
+#include "../Interfaces/Face.h"
 #include "../../Graphs/Interfaces/PlanarEmbedding.h"
 
 #include <vector>
@@ -17,6 +19,41 @@ using std::map;
 using std::array;
 
 
+Vertex* DCEL::new_vertex(array<double, 3> coords) {
+
+    // Call Vertex Factory
+    Vertex* newVertex = allocateVertex(coords);
+
+    // Add to memory tracking
+    vertices.push_back(newVertex);
+
+    return newVertex;
+}
+
+HalfEdge* DCEL::new_halfEdge(Vertex* vertex) {
+
+    // Call HalfEdge Factory
+    HalfEdge* newHalfEdge = allocateHalfEdge(vertex);
+
+    // Add to memory tracking
+    edges.push_back(newHalfEdge);
+
+    return newHalfEdge;
+
+}
+
+
+Vertex* DCEL::allocateVertex(array<double, 3> coords) {
+
+    return new Vertex(coords);
+}
+
+HalfEdge* DCEL::allocateHalfEdge(Vertex* vertex) {
+
+    return new HalfEdge(vertex);
+}
+
+
 double distanceBetween(const Vertex* v, const Vertex* u) {
 
     double dx = v->position[0] - u->position[0];
@@ -28,6 +65,7 @@ double distanceBetween(const Vertex* v, const Vertex* u) {
 }
 
 
+// DEPRECATED METHOD. NO LONGER SERVES A PURPOSE
 //Create n-gon on the unit circle
 DCEL::DCEL(int n) {
 
@@ -88,14 +126,25 @@ DCEL::DCEL(int n) {
 
 }
 
+
+//
+DCEL::DCEL() {}
+
 // Create DCEL from planar embedding
 DCEL::DCEL(const PlanarEmbedding& g) {
+
+    buildFromEmbedding(g);
+
+}
+
+void DCEL::buildFromEmbedding(const PlanarEmbedding& g) {
 
     std::pair<int, double> leftMostVertex = {-1, std::numeric_limits<double>::max()};
 
     //create all vertices, keep track of leftMost
     for (int u=0 ; u<g.order() ; u++) {
-        vertices.push_back(new Vertex(g.vertex(u)));
+
+        new_vertex(g.vertex(u));
         
         if (vertices[u]->position[0] < leftMostVertex.second) {
             leftMostVertex.first = u; 
@@ -111,10 +160,7 @@ DCEL::DCEL(const PlanarEmbedding& g) {
 
         for (int v=0 ; v<g.degree(u) ; v++) {
 
-            HalfEdge* edge = new HalfEdge;
-            edge->origin = vertices[u];
-
-            edges.push_back(edge);
+            HalfEdge* edge = new_halfEdge(vertices[u]);
 
             edgeMap[std::make_pair(u, g.neighbors(u)[v])] = edge;
 
@@ -182,6 +228,7 @@ DCEL::DCEL(const PlanarEmbedding& g) {
 
 }
 
+
 // Possible different algorithm for DCEL constructor (see picture of whiteboard)
 // DCEL::DCEL(const PlanarEmbedding& g) {
 //
@@ -196,8 +243,6 @@ DCEL::DCEL(const PlanarEmbedding& g) {
 
 DCEL::~DCEL() {
 
-    std::cout << "DCEL DESTRUCTOR" << std::endl;
-
     for (Vertex* vertex : vertices) delete vertex;
     for (HalfEdge* edge : edges) delete edge;
     for (Face* face : faces) delete face;
@@ -205,7 +250,9 @@ DCEL::~DCEL() {
 }
 
 
-void DCEL::triangulate() {
+vector<Vertex*> DCEL::triangulate() {
+
+    vector<Vertex*> newVertices;
 
     int i=0;
     while (i<faces.size()) {
@@ -213,19 +260,21 @@ void DCEL::triangulate() {
         if (!faces[i]->isExterior && 
             faces[i]->numSides() != 3) {
 
-            triangulate(i);
+            newVertices.push_back(triangulate(i));
         }
         else i++;
     }
 
+    return newVertices;
 }
 
-void DCEL::triangulate(int faceIndex) {
+// The order of the creation of edges matters a lot. That is a weakness
+// of this triangulate function. Should be refactored in the future.
+Vertex* DCEL::triangulate(int faceIndex) {
 
     Face* oldFace = faces[faceIndex];
 
-    Vertex* newVertex = new Vertex(oldFace->centroid());
-    vertices.push_back(newVertex);
+    Vertex* newVertex = new_vertex(oldFace->centroid());
 
     HalfEdge* start = oldFace->edge;
     HalfEdge* current = start;
@@ -243,11 +292,9 @@ void DCEL::triangulate(int faceIndex) {
         Face* newFace = new Face;
         newFace->edge = edge;
 
-        HalfEdge* newEdge = new HalfEdge;
-        newEdge->origin = edge->twin->origin;
+        HalfEdge* nextEdge = new_halfEdge(newVertex);
 
-        HalfEdge* nextEdge = new HalfEdge;
-        nextEdge->origin = newVertex;
+        HalfEdge* newEdge = new_halfEdge(edge->twin->origin);
 
         newEdge->next = nextEdge;
         nextEdge->next = edge;
@@ -258,8 +305,6 @@ void DCEL::triangulate(int faceIndex) {
         edge->face = newFace;
 
         faces.push_back(newFace);
-        edges.push_back(nextEdge);
-        edges.push_back(newEdge);
 
         numNewFaces++;
 
@@ -275,6 +320,8 @@ void DCEL::triangulate(int faceIndex) {
     }
     edges[oldNumEdges]->twin = edges[edges.size()-1];
     edges[edges.size()-1]->twin = edges[oldNumEdges];
+
+    return newVertex;
     
 }
 
@@ -292,8 +339,7 @@ void DCEL::triangulate(Face* oldFace) {
 void DCEL::addVertex(array<double, 3> coords) {
 
     // Create new Vertex (u)
-    Vertex* newVertex = new Vertex(coords);
-    vertices.push_back(newVertex);
+    Vertex* newVertex = new_vertex(coords);
 
 
     // Find closest interior vertex (v)
@@ -315,14 +361,12 @@ void DCEL::addVertex(array<double, 3> coords) {
     HalfEdge* v_vm = closestExterior->leaving;
     do {
         v_vm = v_vm->twin->next;
-        std::cout << "Looping" << std::endl;
     }
     while (exteriorVertices.count(v_vm->twin->origin) == 0);
 
     HalfEdge* vm_previous = v_vm->twin;
     do {
         vm_previous = vm_previous->twin->next;
-        std::cout << "Looping" << std::endl;
     }
     while (exteriorVertices.count(vm_previous->twin->origin) == 0);
 
@@ -333,21 +377,13 @@ void DCEL::addVertex(array<double, 3> coords) {
     //
     vm_previous = vm_previous->twin;
     //
-    HalfEdge* v_u = new HalfEdge(closestExterior);
-    HalfEdge* u_v = new HalfEdge(newVertex);
-    HalfEdge* u_vp = new HalfEdge(newVertex);
-    HalfEdge* vp_u = new HalfEdge(closestExterior->leaving->twin->origin);
+    HalfEdge* v_u = new_halfEdge(closestExterior);
+    HalfEdge* u_v = new_halfEdge(newVertex);
+    HalfEdge* u_vp = new_halfEdge(newVertex);
+    HalfEdge* vp_u = new_halfEdge(closestExterior->leaving->twin->origin);
     //
-    edges.push_back(v_u);
-    edges.push_back(u_v);
-    edges.push_back(u_vp);
-    edges.push_back(vp_u);
-    //
-    HalfEdge* vm_u = new HalfEdge(vm_v->origin);
-    HalfEdge* u_vm = new HalfEdge(newVertex);
-    //
-    edges.push_back(vm_u);
-    edges.push_back(u_vm);
+    HalfEdge* vm_u = new_halfEdge(vm_v->origin);
+    HalfEdge* u_vm = new_halfEdge(newVertex);
 
     // Track previous vertex in exterior (vm)
     Vertex* previousExterior = vm_v->origin;
@@ -414,7 +450,80 @@ void DCEL::addVertex(array<double, 3> coords) {
     exteriorVertices.insert(newVertex);
     exteriorVertices.erase(closestExterior);
 
-    std::cout << "BUILT" << std::endl;
+}
+
+
+void DCEL::deleteVertex(Vertex* vertex) {
+
+    vector<Face*> oldFaces;
+    vector<HalfEdge*> spokes;
+    vector<HalfEdge*> rimEdges;
+
+    // Rotate around vertex being deleted
+    HalfEdge* start = vertex->leaving;
+    HalfEdge* current = start;
+    do {
+
+        // Collect face to be deleted
+        oldFaces.push_back(current->face);
+
+        // Collect spoke pairs to be deleted
+        spokes.push_back(current);
+        spokes.push_back(current->twin);
+
+        // Collect edges on rim to splice into new face
+        rimEdges.push_back(current->next);
+
+        current = current->twin->next;
+    } 
+    while (current != start);
+
+    // Delete old faces and check if any are the exterior
+    bool deleteExterior = false;
+    for (Face* face : oldFaces) {
+
+        if (face->isExterior) {
+            deleteExterior = true;
+        }
+        delete face;
+        faces.erase(std::remove(faces.begin(), faces.end(), face), faces.end());
+    }
+
+    // Delete old spokes
+    for (HalfEdge* edge : spokes) {
+        delete edge;
+        edges.erase(std::remove(edges.begin(), edges.end(), edge), edges.end());
+    }
+
+    // Create new face
+    Face* newFace = new Face(deleteExterior);
+    newFace->edge = rimEdges[0];
+
+    // Splice rim edges into new face
+    for (int i=1 ; i<rimEdges.size() ; i++) {
+        rimEdges[i]->next = rimEdges[i-1];
+        rimEdges[i]->face = newFace;
+    }
+    rimEdges[0]->next = rimEdges[rimEdges.size()-1];
+    rimEdges[0]->face = newFace;
+
+    if (deleteExterior) {
+        updateExteriorFace(newFace);
+    } 
+    else {
+        // Change newFace vertices to assure "leaving" wasnt deleted
+        for (HalfEdge* edge : rimEdges) {
+
+            edge->origin->leaving = edge;
+        }
+    }
+
+    // Delete old vertex
+    delete vertex;
+    vertices.erase(std::remove(vertices.begin(), vertices.end(), vertex), vertices.end());
+
+    // Add newFace to DCEL memory tracking
+    faces.push_back(newFace);
 
 }
 
@@ -433,6 +542,28 @@ int DCEL::degree(Vertex* vertex) {
     while (current != start);
 
     return deg;
+
+}
+
+
+void DCEL::updateExteriorFace(Face* newFace) {
+
+    if (exteriorFace) {
+        exteriorFace->isExterior = false;
+    }
+
+    newFace->isExterior = true;
+    exteriorFace = newFace;
+
+    exteriorVertices.clear();
+
+    for (Vertex* vertex : newFace->vertices()) {
+        exteriorVertices.insert(vertex);
+    }
+
+    for (HalfEdge* edge : newFace->edges()) {
+        edge->origin->leaving = edge;
+    }
 
 }
 

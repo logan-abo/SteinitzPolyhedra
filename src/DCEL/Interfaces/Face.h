@@ -13,19 +13,22 @@ class HalfEdge;
 class Face {
 
     public:
+
         Face(bool exterior=false);
 
         bool isExterior;
 
-        HalfEdge* edge = 0;
+        HalfEdge* edge = nullptr;
         double inradius = 0;
 
         int numSides();
         
-        vector<Vertex*> vertices();
-        vector<HalfEdge*> edges();
+        vector<Vertex*> vertices() const;
+        vector<HalfEdge*> edges() const;
         
         array<double, 3> centroid() const;
+
+        array<double, 3> normal() const;
 
 };
 

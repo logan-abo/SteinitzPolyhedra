@@ -4,6 +4,7 @@
 
 #include <array>
 #include <vector>
+#include <cmath>
 
 using std::vector;
 using std::array;
@@ -11,11 +12,18 @@ using std::array;
 
 Face::Face(bool exterior) {
 
+    inradius = 0;
+
     isExterior = exterior;
+
+    if (isExterior) {
+
+        inradius = 1;
+    }
 
 }
 
-vector<Vertex*> Face::vertices() {
+vector<Vertex*> Face::vertices() const {
 
     vector<Vertex*> vertexList;
 
@@ -32,7 +40,7 @@ vector<Vertex*> Face::vertices() {
 
 }
 
-vector<HalfEdge*> Face::edges() {
+vector<HalfEdge*> Face::edges() const {
 
     vector<HalfEdge*> edgeList;
 
@@ -92,4 +100,34 @@ std::array<double, 3> Face::centroid() const {
                 ySum/numSides, 
                 zSum/numSides};
 
+}
+
+array<double, 3> Face::normal() const {
+    array<double, 3> p1 = edge->origin->position;
+    array<double, 3> p2 = edge->next->origin->position;
+    array<double, 3> p3 = edge->next->next->origin->position;
+
+    // Vector 1
+    p2[0] -= p1[0];
+    p2[1] -= p1[1];
+    p2[2] -= p1[2];
+
+    // Vector 2
+    p3[0] -= p1[0];
+    p3[1] -= p1[1];
+    p3[2] -= p1[2];
+
+    // Cross Product
+    array<double, 3> normal = {
+        (p3[1] * p2[2]) - (p3[2] * p2[1]),
+        (p3[2] * p2[0]) - (p3[0] * p2[2]),
+        (p3[0] * p2[1]) - (p3[1] * p2[0])
+    };
+
+    // Normalize to unit length
+    double length = std::sqrt(normal[0]*normal[0] + 
+                              normal[1]*normal[1] + 
+                              normal[2]*normal[2]);
+                              
+    return {normal[0]/length, normal[1]/length, normal[2]/length};
 }

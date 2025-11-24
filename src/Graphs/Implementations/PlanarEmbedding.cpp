@@ -1,9 +1,10 @@
 #include "../Interfaces/PlanarEmbedding.h"
 #include "../Interfaces/SimpleGraph.h"
 
-#include "../../DCEL/Interfaces/DCEL.h"
 #include "../../DCEL/Interfaces/Vertex.h"
 #include "../../DCEL/Interfaces/HalfEdge.h"
+#include "../../DCEL/Interfaces/Face.h"
+#include "../../DCEL/Interfaces/DCEL.h"
 
 #include <iostream>
 #include <algorithm>
