@@ -10,6 +10,8 @@ class HalfEdge {
 
         HalfEdge(Vertex* org);
 
+        virtual ~HalfEdge() {}
+
         Vertex* origin = nullptr;
 
         HalfEdge* twin = nullptr;
@@ -19,8 +21,6 @@ class HalfEdge {
 
         double length();
         double angleWith(HalfEdge* edge);
-
-
 
         // DEPRECATED CONSTRUCTOR
         HalfEdge();

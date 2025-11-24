@@ -15,11 +15,11 @@ HalfEdge::HalfEdge() :
     next(nullptr), 
     face(nullptr) {}
 
-HalfEdge::HalfEdge(Vertex* org) {
-
-    origin = org;
-
-}
+HalfEdge::HalfEdge(Vertex* org) :
+    origin(org),
+    twin(nullptr), 
+    next(nullptr), 
+    face(nullptr) {}
 
 double HalfEdge::length() {
 

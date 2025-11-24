@@ -243,8 +243,6 @@ void DCEL::buildFromEmbedding(const PlanarEmbedding& g) {
 
 DCEL::~DCEL() {
 
-    std::cout << "DCEL DESTRUCTOR" << std::endl;
-
     for (Vertex* vertex : vertices) delete vertex;
     for (HalfEdge* edge : edges) delete edge;
     for (Face* face : faces) delete face;
@@ -267,6 +265,8 @@ void DCEL::triangulate() {
 
 }
 
+// The order of the creation of edges matters a lot. That is a weakness
+// of this triangulate function. Should be refactored in the future.
 void DCEL::triangulate(int faceIndex) {
 
     Face* oldFace = faces[faceIndex];
@@ -289,9 +289,9 @@ void DCEL::triangulate(int faceIndex) {
         Face* newFace = new Face;
         newFace->edge = edge;
 
-        HalfEdge* newEdge = new_halfEdge(edge->twin->origin);
-
         HalfEdge* nextEdge = new_halfEdge(newVertex);
+
+        HalfEdge* newEdge = new_halfEdge(edge->twin->origin);
 
         newEdge->next = nextEdge;
         nextEdge->next = edge;
