@@ -82,7 +82,7 @@ CirclePacking::CirclePacking(const PlanarEmbedding& planeGraph) {
 void CirclePacking::pack() {
 
     // Packing algorithm requires a somewhat (ignore exterior face) maximal planar graph
-    triangulate();
+    vector<Vertex*> addedVertices = triangulate();
 
     // The step involving solving the linear system relies on the vertices being in order:
     // Interior vertices first (any order) then exterior vertices, added counterclockwise
@@ -105,6 +105,13 @@ void CirclePacking::pack() {
     std::cout << "Total Elapsed time: ";
     std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()/1000.0;
     std::cout << " seconds" << std::endl;
+
+    // Remove the circles which correspond vertices add during triangulation
+    for (int i=addedVertices.size()-1 ; i>=0 ; i--) {
+        deleteVertex(addedVertices[i]);
+    }
+    std::cout << "Size of vertices: ";
+    std::cout << vertices.size() << std::endl;
 }
 
 
@@ -217,7 +224,7 @@ double CirclePacking::sectorRadius(HalfEdge* edge) const {
 //      place all exterior circles succeessively
 //  Rescale all circles to be within unit circle 
 //
-// Using the radius of the vounding circle, the exterior circles can be placed 1 by 1
+// Using the radius of the bounding circle, the exterior circles can be placed 1 by 1
 void CirclePacking::placeExteriorCircles() {
 
     double rho = estimateBoundingRadius();

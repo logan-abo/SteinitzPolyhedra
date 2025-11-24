@@ -250,7 +250,9 @@ DCEL::~DCEL() {
 }
 
 
-void DCEL::triangulate() {
+vector<Vertex*> DCEL::triangulate() {
+
+    vector<Vertex*> newVertices;
 
     int i=0;
     while (i<faces.size()) {
@@ -258,16 +260,17 @@ void DCEL::triangulate() {
         if (!faces[i]->isExterior && 
             faces[i]->numSides() != 3) {
 
-            triangulate(i);
+            newVertices.push_back(triangulate(i));
         }
         else i++;
     }
 
+    return newVertices;
 }
 
 // The order of the creation of edges matters a lot. That is a weakness
 // of this triangulate function. Should be refactored in the future.
-void DCEL::triangulate(int faceIndex) {
+Vertex* DCEL::triangulate(int faceIndex) {
 
     Face* oldFace = faces[faceIndex];
 
@@ -317,6 +320,8 @@ void DCEL::triangulate(int faceIndex) {
     }
     edges[oldNumEdges]->twin = edges[edges.size()-1];
     edges[edges.size()-1]->twin = edges[oldNumEdges];
+
+    return newVertex;
     
 }
 
@@ -448,6 +453,81 @@ void DCEL::addVertex(array<double, 3> coords) {
 }
 
 
+void DCEL::deleteVertex(Vertex* vertex) {
+
+    vector<Face*> oldFaces;
+    vector<HalfEdge*> spokes;
+    vector<HalfEdge*> rimEdges;
+
+    // Rotate around vertex being deleted
+    HalfEdge* start = vertex->leaving;
+    HalfEdge* current = start;
+    do {
+
+        // Collect face to be deleted
+        oldFaces.push_back(current->face);
+
+        // Collect spoke pairs to be deleted
+        spokes.push_back(current);
+        spokes.push_back(current->twin);
+
+        // Collect edges on rim to splice into new face
+        rimEdges.push_back(current->next);
+
+        current = current->twin->next;
+    } 
+    while (current != start);
+
+    // Delete old faces and check if any are the exterior
+    bool deleteExterior = false;
+    for (Face* face : oldFaces) {
+
+        if (face->isExterior) {
+            deleteExterior = true;
+        }
+        delete face;
+        faces.erase(std::remove(faces.begin(), faces.end(), face), faces.end());
+    }
+
+    // Delete old spokes
+    for (HalfEdge* edge : spokes) {
+        delete edge;
+        edges.erase(std::remove(edges.begin(), edges.end(), edge), edges.end());
+    }
+
+    // Create new face
+    Face* newFace = new Face(deleteExterior);
+    newFace->edge = rimEdges[0];
+
+    // Splice rim edges into new face
+    for (int i=1 ; i<rimEdges.size() ; i++) {
+        rimEdges[i]->next = rimEdges[i-1];
+        rimEdges[i]->face = newFace;
+    }
+    rimEdges[0]->next = rimEdges[rimEdges.size()-1];
+    rimEdges[0]->face = newFace;
+
+    if (deleteExterior) {
+        updateExteriorFace(newFace);
+    } 
+    else {
+        // Change newFace vertices to assure "leaving" wasnt deleted
+        for (HalfEdge* edge : rimEdges) {
+
+            edge->origin->leaving = edge;
+        }
+    }
+
+    // Delete old vertex
+    delete vertex;
+    vertices.erase(std::remove(vertices.begin(), vertices.end(), vertex), vertices.end());
+
+    // Add newFace to DCEL memory tracking
+    faces.push_back(newFace);
+
+}
+
+
 int DCEL::degree(Vertex* vertex) {
 
     int deg = 0;
@@ -462,6 +542,28 @@ int DCEL::degree(Vertex* vertex) {
     while (current != start);
 
     return deg;
+
+}
+
+
+void DCEL::updateExteriorFace(Face* newFace) {
+
+    if (exteriorFace) {
+        exteriorFace->isExterior = false;
+    }
+
+    newFace->isExterior = true;
+    exteriorFace = newFace;
+
+    exteriorVertices.clear();
+
+    for (Vertex* vertex : newFace->vertices()) {
+        exteriorVertices.insert(vertex);
+    }
+
+    for (HalfEdge* edge : newFace->edges()) {
+        edge->origin->leaving = edge;
+    }
 
 }
 

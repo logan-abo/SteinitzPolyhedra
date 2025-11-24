@@ -23,10 +23,12 @@ class Face {
 
         int numSides();
         
-        vector<Vertex*> vertices();
-        vector<HalfEdge*> edges();
+        vector<Vertex*> vertices() const;
+        vector<HalfEdge*> edges() const;
         
         array<double, 3> centroid() const;
+
+        array<double, 3> normal() const;
 
 };
 

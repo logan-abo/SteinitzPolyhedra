@@ -69,6 +69,8 @@ class CirclePacking : public DCEL {
 
         void pack();
 
+        array<double, 3> tangencyPoint(HalfEdge* edge);
+
 };
 
 #endif
