@@ -341,37 +341,11 @@ void CirclePacking::computeEdgeConductance() {
 
     for (HalfEdge* edge : edges) {
 
-        // 1. Check Edge
-        if (!edge) { std::cerr << "Null Edge!" << std::endl; continue; }
-
-        // 2. Check Twins
-        if (!edge->twin) { std::cerr << "Null Twin!" << std::endl; continue; }
-
-        // 3. Check Faces (Likely Culprit)
-        if (!edge->face) { 
-            std::cerr << "Edge has no Face!" << std::endl; 
-            continue; 
-        }
-        if (!edge->twin->face) { 
-            std::cerr << "Twin has no Face!" << std::endl; 
-            continue; 
-        }
-
-        // 4. Check Origins
-        if (!edge->origin) { std::cerr << "Edge has no Origin!" << std::endl; continue; }
-        if (!edge->twin->origin) { std::cerr << "Twin has no Origin!" << std::endl; continue; }
-
         double conductance = (edge->face->inradius + edge->twin->face->inradius) /
                              (getRadius(edge->origin) + getRadius(edge->twin->origin));
 
         cast(edge)->conductance = conductance;
 
-    }
-
-    // Edges along the exterior have zero conductance (absorbing boundary)
-    for (Vertex* exteriorVertex : exteriorVertices) {
-
-        cast(exteriorVertex->leaving)->conductance = 0;
     }
 }
 //
@@ -440,10 +414,10 @@ void CirclePacking::placeInteriorCircles() {
 void CirclePacking::setRadius(Vertex* vertex, double rad) {
 
     cast(vertex)->radius = rad;
-
 }
 
 double CirclePacking::getRadius(Vertex* vertex) const {
+
     return cast(vertex)->radius;
 }
 
