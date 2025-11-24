@@ -8,7 +8,7 @@
 
 #include "CirclePacking/Interfaces/CirclePacking.h"
 #include "CirclePacking/Interfaces/PackingDisplay.h"
-// #include "CirclePacking/Interfaces/SteinitzPolyhedron.h"
+#include "CirclePacking/Interfaces/SteinitzPolyhedron.h"
 
 #include <iostream>
 #include <vector>
@@ -114,8 +114,8 @@ int main() {
     packingDisplay.display();
 
     // Graphics for Polyhedron (3D)
-    // SteinitzPolyhedron poly(packingAttempt2);
-    // viewWindow.rotating = true;
-    // viewWindow.display();
+    SteinitzPolyhedron poly(packingAttempt2);
+    viewWindow.rotating = true;
+    viewWindow.display();
 
 }

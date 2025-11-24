@@ -30,7 +30,6 @@ class CirclePacking : public DCEL {
         void sortVertices();
 
         // To avoid mass templating
-        CircleVertex* cast(Vertex* vertex) const;
         ConductanceEdge* cast(HalfEdge* edge) const;
         void setRadius(Vertex* vertex, double radius);
 
@@ -65,6 +64,7 @@ class CirclePacking : public DCEL {
 
         CirclePacking(const PlanarEmbedding& graph);
 
+        CircleVertex* cast(Vertex* vertex) const;
         double getRadius(Vertex* vertex) const;
 
         void pack();
