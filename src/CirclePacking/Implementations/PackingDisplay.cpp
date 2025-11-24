@@ -64,8 +64,6 @@ void PackingDisplay::computeCircles() {
 
         drawableShapes.push_back(unique_ptr<sf::Drawable>(drawableCircle));
     }
-    std::cout << "Size of centers: ";
-    std::cout << object->vertices.size() << std::endl;
 }
 
 void PackingDisplay::computeUnderlyingGraph() {

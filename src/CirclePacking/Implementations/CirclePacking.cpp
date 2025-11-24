@@ -110,8 +110,6 @@ void CirclePacking::pack() {
     for (int i=addedVertices.size()-1 ; i>=0 ; i--) {
         deleteVertex(addedVertices[i]);
     }
-    std::cout << "Size of vertices: ";
-    std::cout << vertices.size() << std::endl;
 }
 
 
